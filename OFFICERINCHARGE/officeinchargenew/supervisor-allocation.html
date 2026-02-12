@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Supervisor Allocation</title>
+<link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+<!-- SIDEBAR -->
+  <div id="sidebar-container"></div>
+
+<div class="container">
+
+  <!-- STEP 1 -->
+  <div class="section-box">
+    <h2>Supervisor Allocation</h2>
+
+    <label>Select Date</label>
+    <input type="date" id="examDate">
+
+    <label>Select Session</label>
+    <select id="sessionSelect">
+      <option value="">Select</option>
+      <option value="Morning Session">Morning</option>
+      <option value="Afternoon Session">Afternoon</option>
+    </select>
+
+    <button id="loadBtn">Supervisor Allocation</button>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="allocationBox" class="section-box" style="display:none">
+
+    <div class="title-bar">
+      Supervisor Allocation for :
+      Date - <span id="showDate" style="color:green"></span>
+      Session - <span id="showSession" style="color:red"></span>
+    </div>
+
+    <table class="form-table">
+      <tr>
+        <td>Select Block</td>
+        <td><select id="blockSelect"></select></td>
+
+        <td>Select Supervisor</td>
+        <td><select id="supervisorSelect"></select></td>
+      </tr>
+      <tr>
+        <td style="color:green">Select Reliever</td>
+        <td>
+          <select id="relieverSelect"></select>
+          <span style="color:gray">( Optional )</span>
+        </td>
+        <td colspan="2"></td>
+      </tr>
+      <tr>
+        <td colspan="4">
+          <button id="confirmBtn">Confirm</button>
+        </td>
+      </tr>
+    </table>
+
+    <div class="section-title">Delete Supervisor Allocation</div>
+
+    <table border="1" width="100%">
+      <thead>
+        <tr>
+          <th>Block No</th>
+          <th>Course & Subject</th>
+          <th>Supervisor_Name</th>
+          <th>Reliever_Name</th>
+          <th>Delete</th>
+        </tr>
+      </thead>
+      <tbody id="allocationTable"></tbody>
+    </table>
+
+  </div>
+
+</div>
+
+</div>
+<script src="../../js/config.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script src="js/script.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const examDate = document.getElementById("examDate");
+    const sessionSelect = document.getElementById("sessionSelect");
+    const loadBtn = document.getElementById("loadBtn");
+    
+    const allocationBox = document.getElementById("allocationBox");
+    const showDate = document.getElementById("showDate");
+    const showSession = document.getElementById("showSession");
+    
+    const blockSelect = document.getElementById("blockSelect");
+    const supervisorSelect = document.getElementById("supervisorSelect");
+    const relieverSelect = document.getElementById("relieverSelect");
+    const confirmBtn = document.getElementById("confirmBtn");
+    const allocationTable = document.getElementById("allocationTable");
+
+    // 1. LOAD DROPDOWNS (Blocks & Supervisors)
+    async function loadDropdowns() {
+        try {
+            // A. Load Blocks
+            const blocksRes = await fetch(`${API_BASE_URL}/api/blocks`);
+            const blocks = await blocksRes.json();
+            
+            blockSelect.innerHTML = `<option value="">Select Block</option>`;
+            blocks.forEach(b => {
+                blockSelect.innerHTML += `<option value="${b.id}">${b.name}</option>`;
+            });
+
+            // B. Load Supervisors (From 'supervisors' table)
+            const supRes = await fetch(`${API_BASE_URL}/api/supervisor`);
+            const supervisors = await supRes.json();
+
+            const supOptions = supervisors.map(s => 
+                `<option value="${s.id}">${s.name} (${s.designation})</option>`
+            ).join("");
+
+            supervisorSelect.innerHTML = `<option value="">Select Supervisor</option>` + supOptions;
+            relieverSelect.innerHTML = `<option value="">Select Reliever (Optional)</option>` + supOptions;
+
+        } catch (err) {
+            console.error("Error loading dropdowns:", err);
+        }
+    }
+    
+    // Call immediately on page load
+    loadDropdowns();
+
+    // 2. SHOW ALLOCATION SECTION
+    loadBtn.addEventListener("click", () => {
+        const date = examDate.value;
+        const session = sessionSelect.value;
+
+        if (!date || !session) return alert("Please select Date and Session");
+
+        showDate.innerText = date;
+        showSession.innerText = session;
+        allocationBox.style.display = "block";
+        
+        loadTable(date, session);
+    });
+
+    // 3. LOAD EXISTING ALLOCATIONS
+    async function loadTable(date, session) {
+        allocationTable.innerHTML = "<tr><td colspan='5'>Loading...</td></tr>";
+        try {
+            const res = await fetch(`http://localhost:3001/api/supervisor-allocations?date=${date}&session=${session}`);
+            const data = await res.json();
+            
+            allocationTable.innerHTML = "";
+            
+            if(data.length === 0) {
+                 allocationTable.innerHTML = "<tr><td colspan='5' style='text-align:center'>No allocations found.</td></tr>";
+                 return;
+            }
+
+            // ... inside loadTable function ...
+    data.forEach(row => {
+        const tr = document.createElement("tr");
+        
+        // Use the new subject_name column
+        const courseDisplay = row.subject_name 
+            ? `${row.course} - ${row.subject_name}` 
+            : "<span style='color:red'>No Students</span>";
+
+        tr.innerHTML = `
+            <td>${row.block_name}</td>
+            <td>${courseDisplay}</td>
+            <td>${row.supervisor_name}</td>
+            <td style="color:green">${row.reliever_name || "-"}</td>
+            <td><button onclick="deleteAllocation(${row.id})" style="background:red; color:white;">Delete</button></td>
+        `;
+        allocationTable.appendChild(tr);
+    });
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // 4. CONFIRM & SAVE
+    confirmBtn.addEventListener("click", async () => {
+        const date = examDate.value;
+        const session = sessionSelect.value;
+        const blockId = blockSelect.value;
+        const supId = supervisorSelect.value;
+        const relId = relieverSelect.value;
+
+        if (!blockId || !supId) return alert("Please select Block and Supervisor");
+
+        try {
+            const res = await fetch("http://localhost:3001/api/allocate-supervisor", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ date, session, blockId, supId, relId })
+            });
+
+            if(res.ok) {
+                alert("✅ Allocation Saved!");
+                loadTable(date, session); // Refresh table
+                
+                // Optional: Reset dropdowns
+                blockSelect.value = "";
+                supervisorSelect.value = "";
+                relieverSelect.value = "";
+            } else {
+                alert("Failed to save. Check server logs.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error saving data");
+        }
+    });
+
+    // 5. DELETE FUNCTION
+    window.deleteAllocation = async (id) => {
+        if(!confirm("Delete this allocation?")) return;
+        
+        await fetch(`${API_BASE_URL}/api/supervisor-allocations/${id}`, { method: "DELETE" });
+        loadTable(examDate.value, sessionSelect.value);
+    };
+
+});
+</script>
+
+
+</body>
+</html>

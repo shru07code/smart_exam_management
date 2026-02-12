@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Print Supervisor Allocation Report</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .report-section { font-family: "Times New Roman", serif; }
+    
+    /* Report Table Styling */
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+    th, td { border: 1px solid #000; padding: 6px; text-align: center; }
+    th { background-color: #f2f2f2; font-weight: bold; }
+    
+    .report-section { display: none; margin-top: 20px; }
+    
+    /* Print Button Styling */
+    .print-btn {
+      background: #007bff; color: white; border: none; padding: 10px 20px; 
+      cursor: pointer; margin-bottom: 15px; font-size: 14px;
+    }
+    .print-btn:hover { background: #0056b3; }
+
+    /* Hide Inputs when Printing */
+    @media print {
+      .no-print, #sidebar-container, form, .print-btn { display: none !important; }
+      .main-content { margin: 0; padding: 0; width: 100%; }
+      .report-section { display: block !important; }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+<div id="sidebar-container"></div>
+
+<div class="main-content">
+
+  <form id="searchForm" class="no-print">
+    <div class="report-header" style="display: flex; gap: 20px; background: #f9f9f9; padding: 15px; border-bottom: 2px solid #ddd;">
+      <div>
+        <label>Select Date</label>
+        <input type="date" id="examDate">
+      </div>
+
+      <div>
+        <label>Select Session</label>
+        <select id="sessionSelect">
+    <option value="">Select</option>
+    <option value="Morning">Morning</option>
+    <option value="Afternoon">Afternoon</option>
+</select>
+      </div>
+
+      <div style="align-self:flex-end;">
+        <button type="button" id="goBtn" style="padding: 6px 20px; background: #28a745; color: white; border: none; cursor: pointer;">Go</button>
+      </div>
+    </div>
+  </form>
+
+  <div class="report-section" id="reportSection">
+    
+    <div class="report-header-top" style="text-align:center; margin-bottom:20px;">
+      <div style="font-weight:bold; font-size: 18px;">MAHARASHTRA STATE BOARD OF TECHNICAL EDUCATION, MUMBAI</div>
+      <div style="font-weight:bold; text-decoration:underline; margin-top:5px; font-size: 16px;">Blockwise Supervisor Allocation Report</div>
+      
+      <div style="margin-top:15px; text-align:left; width:100%;">
+        <table style="border: none;">
+            <tr style="border: none;">
+                <td style="border: none; text-align: left;"><b>Examination:</b> Summer-2026</td>
+                <td style="border: none; text-align: left;"><b>Date:</b> <span id="printDate"></span></td>
+                <td style="border: none; text-align: left;"><b>Session:</b> <span id="printSession"></span></td>
+            </tr>
+            <tr style="border: none;">
+                 <td colspan="3" style="border: none; text-align: left;">
+                    <b>Exam Center:</b> Sanjay Ghodawat Polytechnic, Atigre &nbsp;&nbsp; (Code: 1644)
+                 </td>
+            </tr>
+        </table>
+      </div>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">Print Report</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 8%;">Block No</th>
+          <th>Block Location</th>
+          <th>Supervisor Name</th>
+          <th style="width: 8%;">Inst.Code</th>
+          <th>Course</th>
+          <th>Subject</th>
+          <th>Sub. Code</th>
+          <th>Exam Seat Numbers</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="reportBody">
+        </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script src="../../js/config.js"></script>
+  <script src="js/sidebar.js"></script>
+<script>
+document.getElementById("goBtn").addEventListener("click", function () {
+  const date = document.getElementById("examDate").value;
+  const session = document.getElementById("sessionSelect").value;
+
+  if (!date || !session) {
+    alert("Please select both date and session.");
+    return;
+  }
+
+  // Update Header Info
+  document.getElementById("printDate").innerText = date;
+  document.getElementById("printSession").innerText = session;
+
+  const tbody = document.getElementById("reportBody");
+  tbody.innerHTML = "<tr><td colspan='9'>Loading...</td></tr>";
+  document.getElementById("reportSection").style.display = "block";
+
+  // Fetch from the new specific API
+  fetch(`${API_BASE_URL}/api/report/supervisor-allocation?date=${date}&session=${session}`)
+    .then(res => res.json())
+    .then(data => {
+      
+      tbody.innerHTML = "";
+
+      if (data.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='9'>No supervisors allocated for this date/session.</td></tr>";
+        return;
+      }
+
+      data.forEach(row => {
+        // Format Seat Range (e.g., 101 - 120)
+        let seatRange = "-";
+        if (row.start_seat_no && row.end_seat_no) {
+            seatRange = `${row.start_seat_no} - ${row.end_seat_no}`;
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.block_no}</td>
+          <td>${row.block_location}</td>
+          <td style="text-align:left; padding-left:10px;">${row.supervisor_name}</td>
+          <td>${row.institute_code || "-"}</td>
+          <td>${row.course || "-"}</td>
+          <td>${row.subject_name || "-"}</td>
+          <td>${row.subject_code || "-"}</td>
+          <td>${seatRange}</td>
+          <td>${row.total_students || 0}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+    })
+    .catch(err => {
+        console.error(err);
+        tbody.innerHTML = "<tr><td colspan='9' style='color:red'>Error loading report</td></tr>";
+    });
+});
+
+// Auto-load if URL params exist
+window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const date = urlParams.get('date');
+    const session = urlParams.get('session');
+
+    if (date && session) {
+        document.getElementById("examDate").value = date;
+        document.getElementById("sessionSelect").value = session;
+        document.getElementById("goBtn").click();
+    }
+});
+</script>
+
+</body>
+</html>

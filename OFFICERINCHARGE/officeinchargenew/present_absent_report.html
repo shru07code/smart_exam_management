@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Print Blank Present/Absent Report</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Controls */
+    .control-panel { 
+        background: #fff; padding: 20px; border-radius: 8px; 
+        display: flex; gap: 20px; align-items: flex-end; 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+        margin-bottom: 20px;
+    }
+    .control-group label { font-weight: bold; display: block; margin-bottom: 5px; }
+    .control-group input, .control-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    button#goBtn { background: #28a745; color: white; border: none; padding: 10px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+
+    /* Report Styles */
+    #reportSection {
+      display: none;
+      background: white;
+      padding: 30px;
+      font-family: Arial, sans-serif;
+      margin: 0 auto;
+    }
+    #reportSection h2, #reportSection h3 {
+      text-align: center;
+      margin: 5px 0;
+      text-transform: uppercase;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    table, th, td {
+      border: 1px solid black;
+    }
+    th, td {
+      text-align: center;
+      padding: 8px;
+      font-size: 13px;
+      vertical-align: top;
+    }
+    th { background: #eee; }
+    
+    .course-cell { text-align: left; white-space: pre-line; }
+
+    @media print {
+      body * { visibility: hidden; }
+      #reportSection, #reportSection * { visibility: visible; }
+      #reportSection { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
+      .control-panel, .print-btn { display: none; }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+<div id="sidebar-container"></div>
+
+<div class="main-content">
+ 
+ <h1 style="font-family: sans-serif;">Print Blank Present/Absent Report</h1>
+
+ <form id="gateForm">
+   <div class="control-panel">
+     <div class="control-group">
+       <label>Select Date</label>
+       <input type="date" id="examDate">
+     </div>
+
+     <div class="control-group">
+       <label>Select Session</label>
+       <select id="sessionSelect">
+         <option value="">Select</option>
+         <option value="Morning Session">Morning</option>
+         <option value="Afternoon Session">Afternoon</option>
+       </select>
+     </div>
+
+     <div class="control-group">
+       <button type="button" id="goBtn">Generate Report</button>
+     </div>
+   </div>
+ </form>
+
+ <div id="reportSection">
+   <h2 id="headerBoard">MAHARASHTRA STATE BOARD OF TECHNICAL EDUCATION, MUMBAI</h2>
+   <h3>PRESENT / ABSENT REPORT</h3>
+   
+   <p id="reportInfo" style="text-align:center; margin:10px 0; font-weight:bold; line-height:1.5;">
+     </p>
+
+   <table>
+     <thead>
+       <tr>
+         <th width="8%">Block No</th>
+         <th width="10%">Block Location</th>
+         <th width="20%">Name of Supervisor with Dated Sign.</th>
+         <th width="35%">Course / Paper Code</th>
+         <th width="12%">P - Present<br>A - Absent<br>T - Total</th>
+         <th>Seat Nos of Absent Candidates</th>
+       </tr>
+     </thead>
+     <tbody id="reportBody">
+       </tbody>
+   </table>
+
+   <div style="text-align:center; margin-top:30px;">
+     <button class="print-btn" onclick="window.print()" style="padding:10px 20px; background:#007bff; color:white; border:none; cursor:pointer;">Print Report</button>
+   </div>
+ </div>
+
+</div>
+
+<script src="../../js/config.js"></script>
+<script src="js/sidebar.js"></script>
+<script>
+ const goBtn = document.getElementById('goBtn');
+const reportSection = document.getElementById('reportSection');
+const reportBody = document.getElementById('reportBody');
+const reportInfo = document.getElementById('reportInfo');
+
+goBtn.addEventListener('click', async () => {
+    const date = document.getElementById('examDate').value;
+    const session = document.getElementById('sessionSelect').value;
+
+    if (!date || !session) {
+        alert('Please select both Date and Session');
+        return;
+    }
+
+    // Set report header info
+    reportInfo.innerText = `Examination: Summer-2026 | Date: ${date} | Session: ${session} \nExam Center: Sanjay Ghodawat Polytechnic, Atigre | Inst Code: 1644`;
+
+    try {
+        // Fetch real data from your backend on API_BASE_URL
+        const response = await fetch(`${API_BASE_URL}/api/report/blank-present-absent?date=${date}&session=${session}`);
+        const data = await response.json();
+
+        // Show report section
+        reportSection.style.display = 'block';
+        reportBody.innerHTML = '';
+
+        // API returns an array directly, so check length of data
+        if (!data || data.length === 0) {
+            reportBody.innerHTML = '<tr><td colspan="6">No data found for the selected date and session.</td></tr>';
+            return;
+        }
+
+        // Populate rows dynamically from database results
+        data.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${r.block_name}</td>
+                <td>${r.location || r.block_location || ''}</td>
+                <td>${r.supervisor_name || ''}<br>Signature</td>
+                <td>${r.course} (${r.institute_code || '1644'})<br>${r.subject_code} ${r.subject_name || ''}</td>
+                <td>P - <br>A - <br>T - ${r.total_students || ''}</td>
+                <td></td>
+            `;
+            reportBody.appendChild(tr);
+        });
+    } catch (error) {
+        console.error('Error fetching report:', error);
+        alert('Server Error. Is Backend Running on port 3001?');
+    }
+});
+</script>
+</body>
+</html>

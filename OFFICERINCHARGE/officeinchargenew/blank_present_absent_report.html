@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Print Blank Present/Absent Report</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Inline styles for report */
+    #reportSection {
+      display: none;
+      margin-top: 20px;
+      background: white;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+    #reportSection h2, #reportSection h3 {
+      text-align: center;
+      margin: 5px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    table, th, td {
+      border: 1px solid black;
+    }
+    th, td {
+      text-align: center;
+      padding: 5px;
+      font-size: 12px;
+    }
+    .print-btn {
+      margin-top: 10px;
+      display: block;
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+<div id="sidebar-container"></div>
+<div class="main-content">
+
+  <h1>Print Blank Present/Absent Report</h1>
+
+  <form id="receiptForm">
+    <div class="report-header" style="display:flex; gap:15px; align-items:flex-end;">
+      <div>
+        <label>Select Date</label>
+        <input type="date" id="examDate">
+      </div>
+
+      <div>
+        <button type="button" id="goBtn">Go</button>
+      </div>
+    </div>
+  </form>
+
+  <!-- Report Section -->
+  <div id="reportSection">
+    <h2>MAHARASHTRA STATE BOARD OF TECHNICAL EDUCATION, MUMBAI</h2>
+    <h3>PRESENT / ABSENT REPORT</h3>
+    <p id="reportInfo" style="text-align:center; margin:5px 0;"></p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Block No</th>
+          <th>Block Location</th>
+          <th>Name of Supervisor with Dated Sign.</th>
+          <th>Course / Paper Code</th>
+          <th>P - Present A - Absent T - Total</th>
+          <th>Seat Nos of Absent Candidates</th>
+        </tr>
+      </thead>
+      <tbody id="reportBody">
+        <!-- Rows will be added dynamically -->
+      </tbody>
+    </table>
+
+    <button class="print-btn" onclick="window.print()">Print Report</button>
+  </div>
+
+</div>
+<script src="../../js/config.js"></script>
+  <script src="js/sidebar.js"></script>
+<script>
+const goBtn = document.getElementById('goBtn');
+const reportSection = document.getElementById('reportSection');
+const reportBody = document.getElementById('reportBody');
+const reportInfo = document.getElementById('reportInfo');
+
+goBtn.addEventListener('click', () => {
+  const date = document.getElementById('examDate').value;
+  if (!date) { alert('Please select Date'); return; }
+
+  reportSection.style.display = 'block';
+  reportInfo.innerText = `Examination: Summer-2026 | Date: ${date} | Center: 1644`;
+  reportBody.innerHTML = '<tr><td colspan="6">Loading...</td></tr>';
+
+  // ✅ Updated to call the specific report API on Port 3001
+  fetch(`http://localhost:3001/api/report/blank-present-absent?date=${date}`)
+    .then(res => res.json())
+    .then(data => {
+      reportBody.innerHTML = '';
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.block_name}</td>
+          <td>${row.location}</td>
+          <td style="height:40px;">${row.supervisor_name || ''}</td>
+          <td>${row.course || ''} <br> ${row.subject_code || ''}</td>
+          <td>P- <br>A- <br>T- </td>
+          <td></td>
+        `;
+        reportBody.appendChild(tr);
+      });
+    })
+    .catch(err => {
+        console.error(err);
+        reportBody.innerHTML = '<tr><td colspan="6" style="color:red">Error loading data. Check Port 3001.</td></tr>';
+    });
+});
+</script>
+
+
+<script src="js/reports.js"></script>
+<script src="js/reports.js"></script>
+</body>
+</html>

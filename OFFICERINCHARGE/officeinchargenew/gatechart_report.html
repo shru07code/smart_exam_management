@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Print Gate Chart</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+  @media screen {
+  #gateChartPrint { display: none; }
+}
+
+@media print {
+  body * { visibility: hidden; }
+
+  #gateChartPrint, #gateChartPrint * {
+    visibility: visible;
+  }
+
+  #gateChartPrint {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+
+  #printGateBtn { display: none; }
+}
+</style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="js/config.js"></script>
+</head>
+<body>
+
+ <div id="sidebar-container"></div>
+
+<div class="main-content">
+
+<!-- ================= GATE CHART FORMAT ================= -->
+
+<div id="gateChartPrint" style="display:none; background:white; padding:30px;">
+
+  <div style="text-align:center;">
+    <h3 style="margin:0;">MAHARASHTRA STATE BOARD OF TECHNICAL EDUCATION, MUMBAI</h3>
+    <h4 style="margin:5px 0; text-decoration:underline;">GATE CHART</h4>
+  </div>
+
+  <table width="100%" style="margin-top:15px; font-size:14px;">
+    <tr>
+      <td><strong>Examination:</strong> <span id="printExam"></span></td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Date:</strong> <span id="printGateDate"></span>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <strong>Day:</strong> <span id="printGateDay"></span>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <strong>Session:</strong> <span id="printGateSession"></span>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <strong>Exam Center:</strong> <span id="printExamCenter"></span>
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <strong>Exam Center Code:</strong> <span id="printCenterCode"></span>
+      </td>
+    </tr>
+  </table>
+
+  <table border="1" width="100%" cellspacing="0" cellpadding="6"
+         style="margin-top:12px; font-size:12px; border-collapse:collapse; text-align:center;">
+    <thead>
+      <tr>
+        <th>Block No</th>
+        <th>Inst Code</th>
+        <th>Course</th>
+        <th>Subject</th>
+        <th>Subject Code</th>
+        <th>Time</th>
+        <th>Exam Seat Numbers</th>
+        <th>Total</th>
+        <th>Grand Total</th>
+      </tr>
+    </thead>
+
+    <tbody id="gateChartBody"></tbody>
+  </table>
+
+  <div style="margin-top:50px; text-align:right; font-size:13px;">
+    <p>(Patil S.R.)</p>
+    <p>Name & Sign of Officer-Incharge</p>
+  </div>
+
+  <div style="text-align:center; margin-top:30px;">
+    <button id="printGateBtn" onclick="window.print()">Print Gate Chart</button>
+  </div>
+
+</div>
+
+<h1>Print Gate Chart</h1>
+
+<div class="report-header">
+
+  <div>
+    <label>Select Date</label>
+    <input type="date" id="gateDate">
+  </div>
+
+  <div>
+    <label>Select Session</label>
+    <select id="gateSession">
+      <option value="Morning Session">Morning</option>
+      <option value="Afternoon Session">Afternoon</option>
+    </select>
+  </div>
+
+  <div style="align-self:end;">
+    <button id="gateGoBtn">Go</button>
+  </div>
+
+</div>
+
+</div>
+<script>
+// Helper to get day name
+function getDayName(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { weekday: 'long' });
+}
+
+document.getElementById("gateGoBtn").addEventListener("click", async () => {
+    const date = document.getElementById("gateDate").value;
+    const session = document.getElementById("gateSession").value;
+
+    if (!date || !session) {
+        alert("Please select both Date and Session");
+        return;
+    }
+
+    // Basic Header Info
+    document.getElementById("printGateDate").innerText = date;
+    document.getElementById("printGateDay").innerText = getDayName(date);
+    document.getElementById("printGateSession").innerText = session === 'Morning Session' ? 'Morning' : (session === 'Afternoon Session' ? 'Afternoon' : session);
+
+    const tbody = document.getElementById("gateChartBody");
+    tbody.innerHTML = "<tr><td colspan='9'>Loading Gate Chart...</td></tr>";
+
+    try {
+        // Fetching from Configured API Base URL
+        const res = await fetch(`${API_BASE_URL}/api/report/gate-chart?date=${date}&session=${session}`);
+        
+        if (!res.ok) throw new Error("Failed to fetch data");
+
+        const responseData = await res.json();
+        
+        // Handle new response structure { reportData: [], settings: {} } or fallback to []
+        const data = Array.isArray(responseData) ? responseData : (responseData.reportData || []);
+        const settings = responseData.settings || {};
+
+        // Update Dynamic Settings if available
+        document.getElementById("printExam").innerText = settings.exam_season || "Summer-2026";
+        document.getElementById("printExamCenter").innerText = settings.center_name || "Sanjay Ghodawat Polytechnic, Atigre";
+        document.getElementById("printCenterCode").innerText = settings.center_code || "1644";
+
+        tbody.innerHTML = ""; 
+        if (data.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='9'>No data found for this session.</td></tr>";
+            document.getElementById("gateChartPrint").style.display = "block"; // Still show the header
+            return;
+        }
+
+        let grandTotal = 0;
+        data.forEach((row) => {
+            const total = row.total_students || 0;
+            grandTotal += total;
+            
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${row.block_name || '-'}</td>
+                <td>${row.institute_code || '-'}</td>
+                <td>${row.course || '-'}</td>
+                <td style="text-align:left;">${row.subject_name || '-'}</td>
+                <td>${row.subject_code || '-'}</td>
+                <td>${row.exam_time || '-'}</td>
+                <td>${row.start_seat_no || '-'} - ${row.end_seat_no || '-'}</td>
+                <td>${total}</td>
+                <td>${grandTotal}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById("gateChartPrint").style.display = "block";
+    } catch (err) {
+        console.error(err);
+        tbody.innerHTML = `<tr><td colspan='9' style='color:red'>Error loading data: ${err.message}</td></tr>`;
+    }
+});
+</script>
+  <script src="js/sidebar.js"></script>
+  <script src="js/script.js"></script>
+</body>
+</html>

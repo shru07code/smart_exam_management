@@ -1,0 +1,6 @@
+session_type,day,session,time_slot,subject_code,subject_name,scheme
+Morning Session,4,A,02:00 P.M. to 05:00 P.M.,315323,SOFTWARE ENGINEERING,CWI-6-K
+Afternoon Seesion,7,A,02:00 P.M. to 05:00 P.M.,315321,ADVANCE COMPUTER NETWORK,CWI-5-K
+Morning Session,7,A,02:00 P.M. to 05:00 P.M.,315325,CLOUD COMPUTING,CWI-5-K
+Morning Session,7,A,02:00 P.M. to 05:00 P.M.,315326,DATA ANALYTICS,CWI-6-K
+Morning Session,10,A,02:00 P.M. to 05:00 P.M.,315319,OPERATING SYSTEM,CWI-6-K

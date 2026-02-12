@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Attendance / Supervisor Report</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .report-section { margin-top: 20px; }
+    .report-button { padding: 10px 20px; margin-top: 10px; cursor: pointer; }
+    .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    .data-table th, .data-table td { border: 1px solid #000; padding: 8px; text-align: center; }
+    .data-table th { background-color: #f2f2f2; }
+    /* Hidden area for printing */
+#printReportArea { display: none; }
+
+@media print {
+    /* Hide the dashboard, sidebar, and filter forms */
+    body * { visibility: hidden; }
+    
+    /* Show only the print section */
+    #printReportArea, #printReportArea * { visibility: visible; }
+    
+    #printReportArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        display: block !important;
+    }
+    
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { border: 1px solid black; padding: 8px; }
+}
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+  <div id="sidebar-container"></div>
+
+  <div class="main-content">
+
+    <h1>Print Attendance / Supervisor Report</h1>
+
+    <!-- STEP 1 : Filter by Date + Session -->
+    <form id="reportFilterForm">
+      <div class="report-header">
+        <div>
+          <label>Select Date</label>
+          <input type="date" id="examDate">
+        </div>
+        <div>
+          <label>Select Session</label>
+          <select id="sessionSelect">
+            <option value="">Select</option>
+            <option value="Morning">Morning</option>
+            <option value="Afternoon">Afternoon</option>
+          </select>
+        </div>
+        <div style="align-self:flex-end;">
+          <button type="button" id="goBtn">Go</button>
+        </div>
+      </div>
+    </form>
+
+    <!-- STEP 2 : Show Reports -->
+    <div id="reportActions" style="display:none;">
+
+      <div class="report-section">
+        <p>
+          Print Reports for :
+          Date - <span id="showDate" style="color:red;font-weight:bold;"></span>
+          &nbsp;&nbsp;
+          Session - <span id="showSession" style="color:red;font-weight:bold;"></span>
+        </p>
+      </div>
+
+      <div class="report-section">
+        <button class="report-button" id="printReportsBtn">
+          Print BOTH Reports with NEW Format
+        </button>
+      </div>
+
+      <!-- TABLE -->
+      <table class="data-table" id="reportTable">
+        <thead>
+          <tr>
+            <th>Block No</th>
+            <th>Institute Code</th>
+            <th>Course Name</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Total</th>
+            <th>Attendance Report</th>
+            <th>Supervisor Report</th>
+          </tr>
+        </thead>
+        <tbody id="reportTableBody">
+          <!-- Sample structure of rows (fetch dynamically later) -->
+          <!--
+          <tr>
+            <td>101</td>
+            <td>INST01</td>
+            <td>B.Tech CSE</td>
+            <td>09:00</td>
+            <td>12:00</td>
+            <td>60</td>
+            <td><button>Print</button></td>
+            <td><button>Print</button></td>
+          </tr>
+          -->
+        </tbody>
+      </table>
+
+    </div>
+    <div id="printReportArea">
+    <h2 style="text-align:center;">CANDIDATE ATTENDANCE REPORT</h2>
+    <p id="printInfo" style="text-align:center;"></p>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Sr. No.</th>
+                <th>Seat No</th>
+                <th>Student Name</th>
+                <th>Signature</th>
+            </tr>
+        </thead>
+        <tbody id="printBody"></tbody>
+    </table>
+</div>
+  </div>
+
+  <script src="../../js/config.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script src="js/reports.js"></script>
+  <script>
+const reportBody = document.getElementById('reportTableBody');
+
+document.getElementById('goBtn').addEventListener('click', () => {
+    const date = document.getElementById('examDate').value;
+    const session = document.getElementById('sessionSelect').value;
+
+    if (!date || !session) {
+        alert('Please select both date and session.');
+        return;
+    }
+
+    document.getElementById('showDate').innerText = date;
+    document.getElementById('showSession').innerText = session;
+    document.getElementById('reportActions').style.display = 'block';
+    reportBody.innerHTML = '<tr><td colspan="8">Loading...</td></tr>';
+
+    // ✅ FETCH JOINED DATA (Not just blocks)
+    fetch(`${API_BASE_URL}/api/report/block-summary?date=${date}&session=${session}`)
+    .then(res => res.json())
+    .then(data => {
+        reportBody.innerHTML = '';
+
+        if (data.length === 0) {
+            reportBody.innerHTML = '<tr><td colspan="8">No allocations found for this slot.</td></tr>';
+            return;
+        }
+
+        data.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.block_name}</td>
+                <td>${item.institute_code}</td>
+                <td>${item.course}<br><small>${item.subject_name}</small></td>
+                <td>${item.start_seat_no}</td>
+                <td>${item.end_seat_no}</td>
+                <td><strong>T: ${item.total_students}</strong></td>
+                <td><button onclick="printAttendance('${item.id}')">Print</button></td>
+                <td><button onclick="printSupervisor('${item.id}')">Print</button></td>
+            `;
+            reportBody.appendChild(tr);
+        });
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        reportBody.innerHTML = '<tr><td colspan="8" style="color:red">Server Error. Check Backend.</td></tr>';
+    });
+});
+
+// Function to print Attendance Report (Annexure)
+async function printAttendance(blockId) {
+    const date = document.getElementById('examDate').value;
+    const session = document.getElementById('sessionSelect').value;
+
+    if (!date || !session) return alert("Please select date and session first.");
+
+    try {
+        // 1. Fetch candidates from seating_chart via backend
+        // Note: Using the special-code-candidates API as it already joins students/seating_chart
+        const res = await fetch(`${API_BASE_URL}/api/special-code-candidates?date=${date}&session=${session}`);
+        const students = await res.json();
+
+        if (students.length === 0) return alert("No students found for this block.");
+
+        // 2. Prepare the Print Area
+        document.getElementById('printInfo').innerText = `Date: ${date} | Session: ${session} | Block ID: ${blockId}`;
+        const printBody = document.getElementById('printBody');
+        printBody.innerHTML = '';
+
+        // Filter students belonging to this block (if your API returns all students)
+        students.forEach((s, i) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${i + 1}</td>
+                <td>${s.seat_no}</td>
+                <td>${s.student_name || 'Unknown'}</td>
+                <td style="height:40px;"></td>
+            `;
+            printBody.appendChild(tr);
+        });
+
+        // 3. Open Print Dialog
+        window.print();
+    } catch (err) {
+        console.error("Print Error:", err);
+        alert("Failed to load attendance data from Server (Port 3001).");
+    }
+}
+
+// Function to print Supervisor Report
+function printSupervisor(blockId) {
+    const date = document.getElementById('examDate').value;
+    const session = document.getElementById('sessionSelect').value;
+    
+    const printWindow = window.open(`supervisor_report.html?date=${date}&session=${session}`, '_blank');
+}
+
+// Function for "Print BOTH Reports with NEW Format"
+document.getElementById('printReportsBtn').addEventListener('click', () => {
+    const date = document.getElementById('examDate').value;
+    const session = document.getElementById('sessionSelect').value;
+
+    if (!date || !session) {
+        alert('Please select both date and session.');
+        return;
+    }
+
+    // Open Block Arrangement Report (which serves as the "New Format" summary)
+    window.open(`block_arrangement_report.html?date=${date}&session=${session}`, '_blank');
+});
+</script>
+
+
+
+</body>
+</html>

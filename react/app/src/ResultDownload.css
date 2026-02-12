@@ -1,0 +1,140 @@
+body {
+  background-color: #f8f9fc;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.main-container {
+  width: 100%;
+  padding-bottom: 30px;
+}
+
+.header {
+  background: linear-gradient(to right, #4b0055, #7b1fa2);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 20px;
+  align-items: center;
+}
+
+.logo {
+  background: white;
+  color: red;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.title {
+  text-align: center;
+  flex-grow: 1;
+}
+
+.contact {
+  font-size: 12px;
+  text-align: center !important
+}
+
+.navbar {
+  display: flex;
+  background-color: #555;
+  color: white;
+  padding: 6px;
+  align-items: center;
+}
+
+.nav-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 8px 15px;
+  cursor: pointer;
+}
+
+.nav-btn.active {
+  background: red;
+  border-radius: 4px;
+}
+
+.content {
+  text-align: center;
+  margin-top: 18px;
+}
+
+.result-title {
+  color: red;
+  font-weight: bold;
+}
+
+.form-container {
+  display: inline-block;
+  background: white;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  width: 420px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.06);
+  text-align: left;
+}
+
+.download-heading {
+  background-color: #e3f2fd;
+  padding: 10px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+label {
+  display: block;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 7px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.captcha-section {
+  display: flex;
+  align-items: center;
+  margin-top: 15px;
+}
+
+.captcha-box {
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 16px;
+  background-color: #f1f1f1;
+  padding: 6px 12px;
+  border: 1px dashed #333;
+  margin-right: 10px;
+}
+
+.refresh {
+  background: none;
+  border: none;
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.download-btn {
+  width: 100%;
+  background-color: #5cb85c;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 4px;
+  padding: 9px;
+  margin-top: 15px;
+  cursor: pointer;
+}
+

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Dashboard</title>
+<!-- FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="student.css">
+</head>
+<body>
+
+<header>
+  <h2><i class="fas fa-graduation-cap"></i> Smart Exam Portal</h2>
+  <button class="logout-btn" onclick="logout()">
+    <i class="fas fa-sign-out-alt"></i> Logout
+  </button>
+</header>
+
+<div class="container">
+  
+  <!-- Student Info Card -->
+  <div class="card">
+    <h3><i class="fas fa-user-circle"></i> Student Information</h3>
+    <div class="info-grid">
+      <div class="info-item">
+        <span class="info-label">Full Name</span>
+        <span class="info-value" id="sName">Loading...</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Enrollment No</span>
+        <span class="info-value" id="sEnroll">Loading...</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Seat Number</span>
+        <span class="info-value" id="sSeat">Loading...</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Scheme</span>
+        <span class="info-value" id="sScheme">Loading...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exam Center Card -->
+  <div class="card">
+    <h3><i class="fas fa-building"></i> Exam Center Details</h3>
+    <div class="info-grid">
+      <div class="info-item">
+        <span class="info-label">Block Number</span>
+        <span class="info-value" id="sBlock">Loading...</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Floor Number</span>
+        <span class="info-value" id="sFloor">Loading...</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Classroom</span>
+        <span class="info-value" id="sRoom">Loading...</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Bench Number</span>
+        <span class="info-value" id="sBench">Loading...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timetable Card (Full Width) -->
+  <div class="card full-width">
+    <h3><i class="fas fa-calendar-day"></i> Upcoming Exam Schedule</h3>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Session</th>
+            <th>Subject Name</th>
+            <th>Subject Code</th>
+            <th>Time Slot</th>
+          </tr>
+        </thead>
+        <tbody id="timetableBody">
+          <!-- Rows will be injected here -->
+        </tbody>
+      </table>
+    </div>
+    <p id="loadingMsg" class="loading">Fetching exam details...</p>
+  </div>
+
+</div>
+
+<script>
+  // 1. Load Student Info from Session Storage
+  const studentName = sessionStorage.getItem("studentName");
+  const studentSeat = sessionStorage.getItem("studentSeat");
+  const enrollmentNo = sessionStorage.getItem("studentEnroll");
+
+  // Check if logged in
+  if (!enrollmentNo) {
+    alert("Please login first!");
+    window.location.href = "login.html";
+  }
+
+  // 2. Fetch Full Student Info
+  async function fetchStudentInfo() {
+    try {
+      const res = await fetch(`http://localhost:3000/api/student/info?enrollment_no=${enrollmentNo}`);
+      const data = await res.json();
+      
+      if(data.error) {
+        // alert(data.error); // Optional: silent fail or toast
+        console.warn(data.error);
+        return;
+      }
+
+      document.getElementById("sName").innerText = data.full_name || "N/A";
+      document.getElementById("sEnroll").innerText = data.enrollment_no || "N/A";
+      document.getElementById("sSeat").innerText = data.seat_no || "N/A";
+      document.getElementById("sScheme").innerText = data.scheme || "N/A";
+      
+      document.getElementById("sBlock").innerText = data.block_no || "Not Allocated";
+      document.getElementById("sFloor").innerText = data.floor_no || "-";
+      document.getElementById("sRoom").innerText = data.classroom_no || "-";
+      document.getElementById("sBench").innerText = data.bench_no || "-";
+
+    } catch (e) {
+      console.error("Failed to fetch info:", e);
+    }
+  }
+
+  // 3. Fetch Timetable from API
+  async function fetchTimetable() {
+    try {
+      const response = await fetch(`http://localhost:3000/api/student/timetable?enrollment_no=${enrollmentNo}`);
+      const data = await response.json();
+
+      const tableBody = document.getElementById("timetableBody");
+      const loadingMsg = document.getElementById("loadingMsg");
+
+      // Clear loading message
+      loadingMsg.style.display = "none";
+      tableBody.innerHTML = ""; 
+
+      if (data.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan='5' style='text-align:center; padding: 2rem; color: #6b7280;'>
+              <i class="fas fa-check-circle" style="font-size: 2rem; color: #10b981; margin-bottom: 0.5rem; display:block;"></i>
+              No upcoming exams found. Good luck!
+            </td>
+          </tr>`;
+        return;
+      }
+
+      data.forEach(exam => {
+        const row = `
+          <tr>
+            <td>${exam.exam_date || exam.day}</td>
+            <td>${exam.session || "-"}</td>
+            <td><strong>${exam.subject_name}</strong></td>
+            <td><span style="background:#eef2ff; color:#4f46e5; padding:2px 8px; border-radius:4px; font-weight:500;">${exam.subject_code}</span></td>
+            <td>${exam.time_slot}</td>
+          </tr>
+        `;
+        tableBody.innerHTML += row;
+      });
+
+    } catch (error) {
+      console.error("Error fetching timetable:", error);
+      document.getElementById("loadingMsg").innerHTML = `<span style="color:#ef4444;"><i class="fas fa-exclamation-triangle"></i> Failed to connect to server.</span>`;
+    }
+  }
+
+  // 4. Logout Function
+  function logout() {
+    if(confirm("Are you sure you want to logout?")) {
+      sessionStorage.clear();
+      window.location.href = "login.html";
+    }
+  }
+
+  // Run Fetch on Load
+  fetchStudentInfo();
+  fetchTimetable();
+</script>
+
+</body>
+</html>

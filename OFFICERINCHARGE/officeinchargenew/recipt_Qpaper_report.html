@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Print Question Paper Record</title>
+  <link rel="stylesheet" href="css/style.css">
+<style>
+  .print-area {
+  display: none;
+  background: white;
+  padding: 18px 22px;
+  margin-top: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 0 6px rgba(0,0,0,0.05);
+}
+
+/* =========================
+   TITLE
+========================= */
+.top-title {
+  text-align: center;
+  font-weight: 700;
+  font-size: 15px;
+  color: #174873;
+  margin-bottom: 6px;
+}
+
+/* =========================
+   HEADER LINE
+========================= */
+.header-line {
+  border-top: 1px solid #174873;
+  margin: 8px 0 12px;
+}
+
+/* =========================
+   META INFO
+========================= */
+.meta {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #333;
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+/* =========================
+   TABLE
+========================= */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+th, td {
+  border: 1px solid #e6e6e6;
+  padding: 6px 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+th {
+  background: #174873;
+  color: white;
+  font-weight: 600;
+}
+
+/* =========================
+   SIGNATURE AREA
+========================= */
+.sign-area {
+  margin-top: 45px;
+  text-align: right;
+  font-size: 13px;
+  color: #333;
+}
+</style>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+<div id="sidebar-container"></div>
+
+<div class="main-content">
+
+<h1>Print Question Paper Record</h1>
+
+<form id="receiptForm">
+  <div class="report-header">
+    <div>
+      <label>Select Date</label>
+      <input type="date" id="examDate">
+    </div>
+
+    <div style="align-self:end;">
+      <button type="button" id="goBtn">Go</button>
+    </div>
+  </div>
+</form>
+
+<!-- ================== REPORT AREA ================== -->
+
+<div id="printArea" class="print-area">
+
+  <div class="top-title">Format for submitting (Account) Record of Question Paper Packets</div>
+<div class="header-line"></div>
+<div class="top-title">To be submitted by the Officer In-Charge Examination Center</div>
+
+<div class="meta" style="margin-top:10px;">
+  <div>Exam Center / Institute Name : Sanjay Ghodawat Polytechnic , Atigre</div>
+  <div>Exam Center / Institute Code : 1644</div>
+
+  <div class="meta-row">
+    <div>Examination : Summer-2019</div>
+    <div>Exam Date : <span id="printDate"></span></div>
+    <div>Exam Day : 1</div>
+  </div>
+</div>
+
+  <table>
+    <thead>
+  <tr>
+    <th rowspan="2">Sr.No.</th>
+    <th rowspan="2">Master Code</th>
+    <th rowspan="2">Subject Abbreviation</th>
+    <th rowspan="2">Question Paper Code</th>
+    <th colspan="5">Question Papers</th>
+  </tr>
+  <tr>
+    <th>Received</th>
+    <th>Used</th>
+    <th>RAC</th>
+    <th>Total Used</th>
+    <th>Balance</th>
+  </tr>
+</thead>
+
+
+    <tbody id="recordBody">
+      <!-- Data here -->
+    </tbody>
+  </table>
+
+  <div class="sign-area">
+    ( Patil S.R. )<br>
+    Sign. of Officer In-Charge<br>
+    Date : <span id="signDate"></span>
+  </div>
+
+</div>
+
+</div>
+
+<script src="../../js/config.js"></script>
+  <script src="js/sidebar.js"></script>
+
+<script>
+document.getElementById("goBtn").addEventListener("click", async () => {
+  const date = document.getElementById("examDate").value;
+
+  if (!date) {
+    alert("Please select exam date");
+    return;
+  }
+
+  document.getElementById("printDate").innerText = date;
+  document.getElementById("signDate").innerText = date;
+  document.getElementById("printArea").style.display = "block";
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/report/question-paper-record?date=${date}`);
+    const data = await res.json();
+
+    let rows = "";
+
+    data.forEach((row, index) => {
+      const received = Number(row.received || 0);
+      const used = Number(row.used || 0);
+      const rac = Number(row.rac || 0);
+      const totalUsed = used + rac;
+      const balance = received - totalUsed;
+
+      rows += `
+        <tr>
+          <td>${index + 1}</td>
+          <td>${row.scheme || '-'}</td>
+          <td>${row.subject_abbreviation || '-'}</td>
+          <td>${row.question_paper_code || '-'}</td>
+          <td>${received}</td>
+          <td>${used}</td>
+          <td>${rac}</td>
+          <td>${totalUsed}</td>
+          <td>${balance}</td>
+        </tr>
+      `;
+    });
+
+    document.getElementById("recordBody").innerHTML =
+      rows || `<tr><td colspan="9">No records found</td></tr>`;
+
+  } catch (err) {
+    console.error(err);
+    alert("Error loading question paper record");
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Entry Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo-section">
+            <h2><i class="fas fa-keyboard"></i> <span>Data Entry</span></h2>
+        </div>
+        <ul class="menu">
+            <li class="menu-heading">Main</li>
+            <li onclick="showSection('home')"><i class="fas fa-home"></i> <span>Dashboard</span></li>
+            
+            <li class="menu-heading">Uploads</li>
+            <li onclick="showSection('timetable')"><i class="fas fa-calendar-alt"></i> <span>Exam Time Table</span></li>
+            <li onclick="showSection('inventory')"><i class="fas fa-file-alt"></i> <span>QP Inventory</span></li>
+            <li onclick="showSection('seating')"><i class="fas fa-chair"></i> <span>Seating Arrangement</span></li>
+            <li onclick="showSection('marksheet')"><i class="fas fa-poll-h"></i> <span>Theory Marksheet</span></li>
+            
+            <li class="menu-heading">Management</li>
+            <li onclick="showSection('extrapaper')"><i class="fas fa-plus-minus"></i> <span>Extra/Less Paper</span></li>
+            <li onclick="showSection('detained')"><i class="fas fa-user-slash"></i> <span>Detained Students</span></li>
+            <li onclick="showSection('subjects')"><i class="fas fa-book"></i> <span>Subject Sections</span></li>
+            
+            <li class="menu-heading">Reports</li>
+            <li onclick="showSection('reports')"><i class="fas fa-chart-bar"></i> <span>Student Count Report</span></li>
+            
+            <li class="menu-heading">System</li>
+            <li onclick="showSection('password')"><i class="fas fa-key"></i> <span>Change Password</span></li>
+            <li onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <h1>Dashboard</h1>
+            <div class="user-info">
+                <span>Welcome, Data Entry Operator</span>
+                <button onclick="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </header>
+
+        <!-- HOME SECTION -->
+        <div id="home" class="section">
+            <h2>Welcome</h2>
+            <p>Select an option from the sidebar to manage exam data.</p>
+        </div>
+
+        <!-- UPLOAD TIMETABLE -->
+        <div id="timetable" class="section" style="display:none;">
+            <h2>Upload Exam Time Table</h2>
+            <div class="upload-box">
+                <input type="file" id="fileTimetable" accept=".csv">
+                <button onclick="uploadCSV('upload-timetable', 'fileTimetable')">Upload CSV</button>
+            </div>
+            <h3>Recent Data</h3>
+            <div class="table-container">
+                <table id="tableTimetable"><thead><tr><th>Date</th><th>Session</th><th>Subject</th></tr></thead><tbody></tbody></table>
+            </div>
+        </div>
+
+        <!-- UPLOAD INVENTORY -->
+        <div id="inventory" class="section" style="display:none;">
+            <h2>Upload Question Paper Inventory</h2>
+            <div class="upload-box">
+                <input type="file" id="fileInventory" accept=".csv">
+                <button onclick="uploadCSV('upload-inventory', 'fileInventory')">Upload CSV</button>
+            </div>
+            <h3>Inventory Data</h3>
+            <div class="table-container">
+                <table id="tableInventory"><thead><tr><th>Subject Code</th><th>QP Code</th><th>Name</th><th>Quantity</th></tr></thead><tbody></tbody></table>
+            </div>
+        </div>
+
+        <!-- UPLOAD SEATING -->
+        <div id="seating" class="section" style="display:none;">
+            <h2>Upload Seating Arrangement</h2>
+            <div class="upload-box">
+                <input type="file" id="fileSeating" accept=".csv">
+                <button onclick="uploadCSV('upload-seating', 'fileSeating')">Upload CSV</button>
+            </div>
+            <h3>Seating Data (First 100)</h3>
+            <div class="table-container">
+                <table id="tableSeating"><thead><tr><th>Seat No</th><th>Course</th><th>Subject</th></tr></thead><tbody></tbody></table>
+            </div>
+        </div>
+
+        <!-- UPLOAD MARKSHEET -->
+        <div id="marksheet" class="section" style="display:none;">
+            <h2>Upload Theory Marksheet Data</h2>
+            <div class="upload-box">
+                <input type="file" id="fileMarksheet" accept=".csv">
+                <button onclick="uploadCSV('upload-marksheet', 'fileMarksheet')">Upload CSV</button>
+            </div>
+            <h3>Marksheet Data (First 100)</h3>
+            <div class="table-container">
+                <table id="tableMarksheet"><thead><tr><th>Marksheet No</th><th>Subject Abb</th><th>Code</th></tr></thead><tbody></tbody></table>
+            </div>
+        </div>
+
+        <!-- EXTRA PAPER -->
+        <div id="extrapaper" class="section" style="display:none;">
+            <h2>Record Extra/Less Question Papers</h2>
+            <div class="form-group">
+                <input type="date" id="epDate">
+                <select id="epSession"><option>Morning</option><option>Afternoon</option></select>
+                <input type="text" id="epSubject" placeholder="Subject Code">
+                <input type="number" id="epExtra" placeholder="Extra Qty">
+                <input type="number" id="epLess" placeholder="Less Qty">
+                <input type="text" id="epReason" placeholder="Reason">
+                <button onclick="addExtraPaper()">Add Entry</button>
+            </div>
+            <h3>Records</h3>
+            <div class="table-container">
+                <table id="tableExtraPaper"><thead><tr><th>Date</th><th>Subject</th><th>Extra</th><th>Less</th><th>Reason</th><th>Action</th></tr></thead><tbody></tbody></table>
+            </div>
+        </div>
+
+        <!-- DETAINED STUDENTS -->
+        <div id="detained" class="section" style="display:none;">
+            <h2>Detained Student Management</h2>
+            <div class="form-group">
+                <input type="text" id="dtSeat" placeholder="Seat Number">
+                <input type="text" id="dtSubject" placeholder="Subject Code">
+                <input type="text" id="dtReason" placeholder="Reason">
+                <button onclick="addDetained()">Add Student</button>
+            </div>
+            <h3>Detained List</h3>
+            <div class="table-container">
+                <table id="tableDetained"><thead><tr><th>Seat No</th><th>Subject</th><th>Reason</th><th>Action</th></tr></thead><tbody></tbody></table>
+            </div>
+        </div>
+
+        <!-- SUBJECT SECTIONS -->
+        <div id="subjects" class="section" style="display:none;">
+            <h2>Subject with Section Management</h2>
+            <div class="form-group">
+                <input type="text" id="subCode" placeholder="Subject Code">
+                <input type="text" id="subName" placeholder="Subject Name">
+                <input type="text" id="subSection" placeholder="Section (A/B)">
+                <button onclick="addSubjectSection()">Add Subject</button>
+            </div>
+            <h3>Subject List</h3>
+            <div class="table-container">
+                <table id="tableSubjects"><thead><tr><th>Code</th><th>Name</th><th>Section</th><th>Action</th></tr></thead><tbody></tbody></table>
+            </div>
+        </div>
+
+        <!-- REPORTS -->
+        <div id="reports" class="section" style="display:none;">
+            <h2>Student Count Comparison Report</h2>
+            <button onclick="loadReport()">Refresh Report</button>
+            <div class="table-container">
+                <table id="tableReport"><thead><tr><th>Subject</th><th>MSBTE Count</th><th>Seating Count</th><th>Diff</th><th>Status</th></tr></thead><tbody></tbody></table>
+            </div>
+        </div>
+
+        <!-- CHANGE PASSWORD -->
+        <div id="password" class="section" style="display:none;">
+            <h2>Change Password</h2>
+            <div class="form-group">
+                <input type="password" id="currPass" placeholder="Current Password">
+                <input type="password" id="newPass" placeholder="New Password">
+                <button onclick="changePassword()">Update Password</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>

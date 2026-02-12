@@ -1,0 +1,182 @@
+/* =========================
+   LAYOUT
+========================= */
+.layout {
+  display: flex;
+  height: 100vh;
+  background: #f4f4f4;
+  font-family: Arial, sans-serif;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+.sidebar {
+  width: 260px;
+  background: #174873;
+  color: white;
+  padding: 10px 0;
+}
+
+/* =========================
+   SIDEBAR TITLE
+========================= */
+.menu-title {
+  margin: 8px 15px;
+  color: #ffcc00;
+  text-align: left;
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+/* =========================
+   MAIN MENU
+========================= */
+.menu-main {
+  padding: 6px 15px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.menu-main:hover {
+  background: #0e2f4c;
+}
+
+.menu-main.active {
+  background: #0e2f4c;
+}
+
+
+.submenu {
+  margin-bottom: 6px;
+}
+
+.submenu-item {
+  padding: 4px 25px;
+  font-size: 13px;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.submenu-item:hover {
+  background: #0e2f4c;
+}
+
+.active-sub {
+  background: #0e2f4c;
+  font-weight: 600;
+}
+
+
+.content {
+  flex: 1;
+  padding: 22px;
+  background: #f4f4f4;
+}
+
+
+.work-card {
+  background: white;
+  padding: 20px;
+  border-radius: 6px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.08);
+}
+
+
+button {
+  background: #174873;
+  color: white;
+  border: none;
+  padding: 9px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+button:hover {
+  background: #0e2f4c;
+}
+
+input[type="file"] {
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+
+.seat-table,
+.timetable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  background: white;
+  box-shadow: 0 0 6px rgba(0,0,0,0.04);
+}
+
+.seat-table th,
+.timetable th {
+  background: #174873;
+  color: white;
+  padding: 8px 10px;
+  font-size: 13px;
+  text-align: left;
+}
+
+.seat-table td,
+.timetable td {
+  border: 1px solid #e6e6e6;
+  padding: 6px 8px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.extra-input-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.small-input {
+  width: 200px;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  font-size: 13px;
+}
+
+
+.action-col {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.edit-btn {
+  background: #ff9800;
+  border: none;
+  color: white;
+  padding: 6px 9px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.delete-btn {
+  background: #f44336;
+  border: none;
+  color: white;
+  padding: 6px 9px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.edit-btn:hover {
+  background: #e68900;
+}
+
+.delete-btn:hover {
+  background: #d32f2f;
+}

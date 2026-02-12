@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Officer Incharge Login</title>
+<link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+   <div id="sidebar-container"></div>  
+<div class="login-container">
+    <h2>Officer Incharge Login</h2>
+    <form id="loginForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <button type="submit">Login</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.getElementById('loginForm');
+
+    loginForm.addEventListener('submit', function(e){
+        e.preventDefault(); // Prevent page refresh
+
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+
+        // Hardcoded credentials
+        const officerUser = 'officer';
+        const officerPass = 'officer123';
+
+        if(username === officerUser && password === officerPass){
+            // Save session
+            sessionStorage.setItem('loggedInUser', username);
+            // Go to dashboard
+            window.location.href = 'dashboard.html';
+        } else {
+            alert('Invalid credentials! Try again.');
+        }
+    });
+});
+</script>
+<script src="../../js/config.js"></script>
+  <script src="js/sidebar.js"></script>
+</body>
+</html>

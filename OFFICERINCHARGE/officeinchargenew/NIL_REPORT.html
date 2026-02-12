@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NIL REPORT</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .print-area { display: none; background: white; padding: 20px 30px; border: 1px solid black; margin-top: 20px; font-family: "Times New Roman", serif; font-size: 14px; }
+    .center-title { text-align: center; font-weight: bold; font-size: 18px; }
+    .sub-title { text-align: center; font-size: 14px; margin-top: 2px; }
+    .hr-line { border-top: 1px solid black; margin: 8px 0 15px; }
+    .meta-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
+    .report-text { margin: 8px 0 10px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid black; padding: 5px; text-align: center; }
+    .signature-row { margin-top: 50px; display: flex; justify-content: space-between; }
+    @media print { .no-print { display: none; } .print-area { display: block !important; border: none; } }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <div id="sidebar-container"></div>
+  <div class="main-content">
+    <h1>Print NIL report</h1>
+    <form id="gateForm" class="no-print">
+      <div class="report-header" style="display:flex; gap:15px; align-items:flex-end;">
+        <div>
+          <label>Select Date</label>
+          <input type="date" id="examDate">
+        </div>
+        <div>
+          <label>Select Session</label>
+          <select id="sessionSelect">
+            <option value="">Select</option>
+            <option value="Morning Session">Morning</option>
+            <option value="Afternoon Session">Afternoon</option>
+          </select>
+        </div>
+        <div>
+          <button type="button" id="goBtn">Go</button>
+        </div>
+      </div>
+    </form>
+
+    <div id="printArea" class="print-area">
+      <div class="center-title">Sanjay Ghodawat Polytechnic , Atigre</div>
+      <div class="sub-title">Exam Center Code : 1644</div>
+      <div class="hr-line"></div>
+      <div class="meta-row">
+        <div>Day : <span id="printDay">7</span></div>
+        <div>Date : <span id="printDate"></span></div>
+      </div>
+      <div class="report-text">
+        To,<br>
+        The Officer In-Charge D.C.<br>
+        Subject : List of NIL Reports EC-1644 ( Summer-2026 )
+      </div>
+      <div class="report-text">Following NIL Reports are enclosed and submitted to Distribution Center</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Sr. No.</th>
+            <th>Inst. Code</th>
+            <th>Master Code</th>
+            <th>Subject Title</th>
+            <th>Subject Code</th>
+            <th>No of Packets</th>
+            <th>Answer Books</th>
+            <th>Marksheet No.</th>
+          </tr>
+        </thead>
+        <tbody id="nilBody"></tbody>
+        <tfoot>
+          <tr>
+            <th colspan="5">Grand Total</th>
+            <th id="grandTotal">0</th>
+            <th></th>
+            <th></th>
+          </tr>
+        </tfoot>
+      </table>
+      <div class="signature-row">
+        <div>Signature & Name<br><br>Date : <span id="signDate"></span></div>
+        <div>Signature & Name<br><br>Time : ______ AM/PM</div>
+      </div>
+      <div style="text-align:center; margin-top:20px;" class="no-print">
+        <button onclick="window.print()">Print Report</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/config.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script>
+    document.getElementById("goBtn").addEventListener("click", async () => {
+      const date = document.getElementById("examDate").value;
+      const session = document.getElementById("sessionSelect").value;
+
+      if (!date || !session) {
+        alert("Please select date and session");
+        return;
+      }
+
+      document.getElementById("printDate").innerText = date;
+      document.getElementById("signDate").innerText = date;
+      const nilBody = document.getElementById("nilBody");
+      nilBody.innerHTML = "<tr><td colspan='8'>Loading...</td></tr>";
+
+      try {
+        // Fetching from your server on Port 3001
+        const res = await fetch(`${API_BASE_URL}/api/report/nil-report?date=${date}&session=${session}`);
+        const data = await res.json();
+
+        let rows = "";
+        let packetTotal = 0;
+
+        if (data.length === 0) {
+          nilBody.innerHTML = `<tr><td colspan="8">No records found for this date and session.</td></tr>`;
+          document.getElementById("grandTotal").innerText = 0;
+          document.getElementById("printArea").style.display = "block";
+          return;
+        }
+
+        data.forEach((row, index) => {
+          packetTotal += Number(row.no_of_packets || 0);
+          rows += `
+            <tr>
+              <td>${index + 1}</td>
+              <td>1644</td>
+              <td>${row.scheme || "-"}</td>
+              <td>${row.subject_name}</td>
+              <td>${row.subject_code}</td>
+              <td>${row.no_of_packets}</td>
+              <td>NIL</td>
+              <td>-</td>
+            </tr>`;
+        });
+
+        nilBody.innerHTML = rows;
+        document.getElementById("grandTotal").innerText = packetTotal;
+        document.getElementById("printArea").style.display = "block";
+      } catch (err) {
+        nilBody.innerHTML = `<tr><td colspan="8" style="color:red">Server connection failed on Port 3001.</td></tr>`;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assign Special Codes</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Header Controls */
+    .control-panel { 
+        background: #fff; padding: 20px; border-radius: 8px; 
+        display: flex; gap: 20px; align-items: flex-end; 
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+    }
+    .control-group label { font-weight: bold; display: block; margin-bottom: 5px; }
+    .control-group input, .control-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+    
+    /* Table Styles */
+    .report-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .report-table th, .report-table td { border: 1px solid #eee; padding: 12px; text-align: left; }
+    .report-table th { background: #007bff; color: white; font-weight: 600; }
+    .report-table tr:nth-child(even) { background-color: #f9f9f9; }
+
+    /* Buttons & Selects */
+    .sp-select { padding: 6px; border-radius: 4px; border: 1px solid #ddd; }
+    .assign-btn { background: #28a745; color: white; border: none; padding: 6px 15px; border-radius: 4px; cursor: pointer; }
+    .deassign-btn { background: #dc3545; color: white; border: none; padding: 6px 15px; border-radius: 4px; cursor: pointer; }
+    .go-btn { background: #007bff; color: white; border: none; padding: 10px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+<div id="sidebar-container"></div>
+
+<div class="main-content">
+  <header>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <button id="sidebarToggle" class="sidebar-toggle" aria-label="Toggle navigation" aria-expanded="false">
+        <i class="fas fa-bars"></i>
+      </button>
+      <h1>Assign Special Codes</h1>
+    </div>
+    <div class="user-info">
+      <span id="userDisplay"></span>
+      <button onclick="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </header>
+
+  <div class="control-panel">
+    <div class="control-group">
+      <label>Select Date</label>
+      <input type="date" id="examDate">
+    </div>
+    <div class="control-group">
+      <label>Select Session</label>
+      <select id="sessionSelect" style="padding:5px; width:150px;">
+  <option value="">-- Select --</option>
+  <option value="Morning Session">Morning</option>
+  
+  <option value="Afternoon Session">Afternoon</option> 
+</select>
+    </div>
+    <button id="goBtn" class="go-btn">Load Students</button>
+  </div>
+
+  <div id="specialCodeSection" style="display:none; margin-top:20px;">
+    <h3 style="color:#555;">
+      Candidates for: <span id="showDate" style="color:#007bff;">--</span> 
+      (<span id="showSession" style="color:#007bff;">--</span>)
+    </h3>
+
+    <table class="report-table">
+      <thead>
+        <tr>
+          <th>Sr. No.</th>
+          <th>Seat No</th>
+          <th>Student Name</th> <th>Institute</th>
+          <th>Subject</th>
+          <th>Current Status</th>
+          <th>Select Code</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="studentTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="../../js/config.js"></script>
+<script src="js/sidebar.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const goBtn = document.getElementById("goBtn");
+  const section = document.getElementById("specialCodeSection");
+  const tbody = document.getElementById("studentTableBody");
+  
+  // Standard Special Codes (MSBTE/University standard)
+  const specialOptions = `
+       <option value="401">401 (Absent)</option>
+       <option value="403">403 (Copy Case)</option>
+       <option value="404">404 (Passed Prev)</option>
+       <option value="405">405 (Deleted)</option>
+       <option value="406">406 (Exempted)</option>
+       <option value="407">407 (Optional)</option>
+       <option value="408">408 (Other Case)</option>
+  `;
+
+  // 1. FETCH & DISPLAY
+  goBtn.addEventListener("click", async () => {
+    const date = document.getElementById("examDate").value;
+    const session = document.getElementById("sessionSelect").value;
+
+    if (!date || !session) return alert("Please select Date and Session");
+
+    document.getElementById("showDate").textContent = date;
+    document.getElementById("showSession").textContent = session;
+    section.style.display = "block";
+    tbody.innerHTML = "<tr><td colspan='8' style='text-align:center;'>Loading data...</td></tr>";
+
+    try {
+        // ✅ FETCH FROM API_BASE_URL (Corrected)
+        const res = await fetch(`${API_BASE_URL}/api/special-code-candidates?date=${encodeURIComponent(date)}&session=${encodeURIComponent(session)}`);
+        let payload = null;
+        try { payload = await res.json(); } catch (_) { payload = null; }
+        if (!res.ok) {
+            const message = payload && payload.error ? payload.error : `Request failed (${res.status})`;
+            throw new Error(message);
+        }
+        const students = Array.isArray(payload) ? payload : [];
+
+        tbody.innerHTML = "";
+
+        if (students.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='8' style='text-align:center;'>No exams scheduled for this slot.</td></tr>";
+            return;
+        }
+
+        students.forEach((s, index) => {
+            const tr = document.createElement("tr");
+            const isAssigned = s.current_status !== "Present";
+            const statusColor = isAssigned ? "#dc3545" : "#28a745"; // Red if code assigned, Green if Present
+            const seatId = s.seat_no; 
+
+            // Logic: If code assigned, show "Deassign". If Present, show "Assign"
+            let selectHtml = isAssigned ? "-" : `<select id="select-${seatId}" class="sp-select">${specialOptions}</select>`;
+            
+            let actionHtml = isAssigned 
+                ? `<button class="deassign-btn" onclick="deassignCode('${seatId}')">Deassign</button>`
+                : `<button class="assign-btn" onclick="assignCode('${seatId}', '${s.subject_code}')">Assign</button>`;
+
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td style="font-weight:bold;">${s.seat_no}</td>
+                <td>${s.student_name || "Unknown"}</td> <td>${s.institute_code || "-"}</td>
+                <td>${s.subject_code || "-"}</td>
+                <td style="color:${statusColor}; font-weight:bold;">${s.current_status}</td>
+                <td>${selectHtml}</td>
+                <td>${actionHtml}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+    } catch (err) {
+        console.error(err);
+        tbody.innerHTML = `<tr><td colspan='8' style='color:red; text-align:center;'>${err && err.message ? err.message : 'Server Error'}</td></tr>`;
+    }
+  });
+
+  // 2. ASSIGN FUNCTION
+  window.assignCode = async (seatNo, subjectCode) => {
+      const date = document.getElementById("examDate").value;
+      const session = document.getElementById("sessionSelect").value;
+      const codeSelect = document.getElementById(`select-${seatNo}`);
+      
+      if(!codeSelect) return;
+      const specialCode = codeSelect.value;
+
+      try {
+          // ✅ API_BASE_URL
+          const res = await fetch(`${API_BASE_URL}/api/assign-special-code`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ date, session, seat_no: seatNo, subject_code: subjectCode, special_code: specialCode })
+          });
+
+          if(res.ok) {
+              goBtn.click(); // Refresh list to show change
+          } else {
+              alert("Failed to save.");
+          }
+      } catch(e) { console.error(e); }
+  };
+
+  // 3. DEASSIGN FUNCTION
+  window.deassignCode = async (seatNo) => {
+      const date = document.getElementById("examDate").value;
+      const session = document.getElementById("sessionSelect").value;
+
+      if(!confirm(`Remove special code for Seat No: ${seatNo}?`)) return;
+
+      try {
+          // ✅ API_BASE_URL
+          const res = await fetch(`${API_BASE_URL}/api/deassign-special-code`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ date, session, seat_no: seatNo })
+          });
+
+          if(res.ok) {
+              goBtn.click(); // Refresh list
+          } else {
+              alert("Failed to remove.");
+          }
+      } catch(e) { console.error(e); }
+  };
+
+});
+</script>
+</body>
+</html>

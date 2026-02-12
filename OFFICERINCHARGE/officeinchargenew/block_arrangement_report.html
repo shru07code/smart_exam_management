@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Print Block Arrangement</title>
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    /* Report Table Styling */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    .data-table th, .data-table td {
+      border: 1px solid #000;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .action-bar {
+      margin: 15px 0;
+    }
+
+    /* Print Area (Hidden normally, Visible during print) */
+    #printArea {
+      display: none;
+      background: white;
+      padding: 20px;
+    }
+
+    @media print {
+      body * { visibility: hidden; }
+      #printArea, #printArea * { visibility: visible; }
+      #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="js/config.js"></script>
+</head>
+
+<body>
+
+  <div id="sidebar-container"></div>
+
+  <div class="main-content">
+
+    <h1>Print Block Arrangement</h1>
+
+    <div class="report-header" style="background: #f4f4f4; padding: 15px; border-radius: 5px; display: flex; gap: 20px; align-items: flex-end;">
+      <div>
+        <label style="display:block; font-weight:bold;">Select Date</label>
+        <input type="date" id="examDate" style="padding: 5px;">
+      </div>
+
+      <div>
+        <label style="display:block; font-weight:bold;">Select Session</label>
+        <select id="sessionSelect" style="padding: 5px; width: 150px;">
+          <option value="">Select</option>
+          <option value="Morning">Morning</option>
+          <option value="Afternoon">Afternoon</option>
+        </select>
+      </div>
+
+      <div>
+        <button id="goBtn" style="padding: 6px 20px; background: #007bff; color: white; border: none; cursor: pointer;">Go</button>
+      </div>
+    </div>
+
+    <div id="blockReportSection" style="display:none; margin-top: 20px;">
+
+      <div class="action-bar">
+        <button class="primary-btn" onclick="printAll()" style="background: #28a745; color: white; padding: 8px 15px; border: none; cursor: pointer;">
+          Print All Reports
+        </button>
+      </div>
+
+      <table class="data-table">
+        <thead style="background: #333; color: white;">
+  <tr>
+    <th>Block No</th>
+    <th>Block Location</th>
+    <th>Course & Subject</th> <th>Action</th>
+  </tr>
+</thead>
+        <tbody id="blockTableBody">
+          </tbody>
+      </table>
+
+    </div>
+
+  </div>
+
+  <div id="printArea"></div>
+  
+  <script src="js/sidebar.js"></script>
+
+  <script>
+    // 1. MAIN SEARCH LOGIC
+    document.getElementById("goBtn").addEventListener("click", async () => {
+
+      const inputDate = document.getElementById("examDate").value; // String: "2026-01-11"
+      const session = document.getElementById("sessionSelect").value;
+      const tbody = document.getElementById("blockTableBody");
+
+      if(!inputDate || !session){
+        alert("Please select both Date and Session.");
+        return;
+      }
+
+      tbody.innerHTML = "<tr><td colspan='4'>Loading data...</td></tr>";
+      document.getElementById("blockReportSection").style.display = "block";
+
+      try {
+        // Fetch ALL allocations
+        const res = await fetch(`${API_BASE_URL}/api/allocations`);
+        const allData = await res.json();
+        
+        console.log("Raw Data from DB:", allData); // Debugging line
+
+        // --- THE FIX: ROBUST DATE FILTERING ---
+        const filtered = allData.filter(row => {
+            if (!row.exam_date) return false;
+            
+            // 1. Create Date objects for both
+            const dbDate = new Date(row.exam_date);
+            const targetDate = new Date(inputDate);
+
+            // 2. Compare only YYYY-MM-DD (Ignoring Time & Timezone)
+            const isSameDate = 
+                dbDate.getFullYear() === targetDate.getFullYear() &&
+                dbDate.getMonth() === targetDate.getMonth() &&
+                dbDate.getDate() === targetDate.getDate();
+
+            // 3. Compare Session (Case-insensitive)
+            const isSameSession = row.session.toLowerCase() === session.toLowerCase();
+
+            return isSameDate && isSameSession;
+        });
+
+        console.log("Filtered Data:", filtered); // Debugging line
+
+        tbody.innerHTML = "";
+
+        if (filtered.length === 0) {
+          tbody.innerHTML = "<tr><td colspan='4'>No arrangements found (Date Mismatch). Check Console (F12).</td></tr>";
+          return;
+        }
+
+        // Render Rows
+        // ... inside the goBtn click event ...
+
+        // Render Rows
+        filtered.forEach(item => {
+          const tr = document.createElement("tr");
+          
+          // Logic: Combine Course + Subject Name + Subject Code
+          // Example: "K-Scheme - English (22101)"
+          let courseDisplay = item.course || "N/A";
+          if (item.subject_name) {
+              courseDisplay += ` - ${item.subject_name}`;
+          }
+          if (item.subject_code) {
+              courseDisplay += ` (${item.subject_code})`;
+          }
+
+          tr.innerHTML = `
+            <td>${item.block_name}</td>
+            <td>${item.location || item.block_location || "N/A"}</td>
+            <td>${courseDisplay}</td>  <td>
+              <button onclick="printBlock('${item.block_name}', '${inputDate}', '${session}')" 
+                style="padding: 5px 10px; cursor: pointer; background: #007bff; color: white; border: none;">
+                Print Report
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+      } catch (err) {
+        console.error(err);
+        tbody.innerHTML = "<tr><td colspan='4' style='color:red;'>Error connecting to server.</td></tr>";
+      }
+    });
+
+    // 2. PRINT SINGLE BLOCK LOGIC
+    async function printBlock(blockName, date, session) {
+      const area = document.getElementById("printArea");
+
+      try {
+        // Fetch Bench Arrangement for specific block
+        const res = await fetch(`${API_BASE_URL}/api/bench_arrangement?block=${blockName}&date=${date}&session=${session}`);
+        const data = await res.json();
+        
+        const h = data.header;
+        const seats = data.seats;
+
+        if(!seats || seats.length === 0) {
+           alert("No seat data returned for this block.");
+           return;
+        }
+
+        // Generate Print HTML
+        // ... inside printBlock function ...
+
+    // Generate Print HTML
+    area.innerHTML = `
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        
+        <h3 style="text-align: center; margin-bottom: 5px;">MAHARASHTRA STATE BOARD OF TECHNICAL EDUCATION</h3>
+        <h4 style="text-align: center; margin-top: 0; text-decoration: underline;">BENCH ARRANGEMENT</h4>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; border: 1px solid black;">
+          <tr>
+            <td style="border:1px solid black; padding:5px;"><b>Exam Center:</b> ${h.exam_center} (${h.center_code})</td>
+            <td style="border:1px solid black; padding:5px;"><b>Date:</b> ${h.date}</td>
+          </tr>
+          <tr>
+            <td style="border:1px solid black; padding:5px;"><b>Block No:</b> ${blockName} &nbsp;&nbsp; <b>Room:</b> ${h.room_no}</td>
+            <td style="border:1px solid black; padding:5px;"><b>Session:</b> ${h.session}</td>
+          </tr>
+          <tr>
+            <td colspan="2" style="border:1px solid black; padding:5px;"><b>Course / Subject:</b> ${h.courses}</td>
+          </tr>
+        </table>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+          ${generateColumns(seats)}
+        </div>
+
+        <div style="margin-top: 60px; text-align: right; padding-right: 50px;">
+          <p style="margin-bottom: 5px;">__________________________</p>
+          <p style="margin: 0; font-weight: bold;">Patil S.R. / Lecturer</p>
+          <p style="margin: 0;">Officer Incharge</p>
+        </div>
+
+      </div>
+    `;
+    
+    // ... rest of function ...
+
+        // Trigger Print
+        area.style.display = "block";
+        window.print();
+        area.style.display = "none";
+
+      } catch (err) {
+        console.error(err);
+        alert("Error generating print preview.");
+      }
+    }
+
+    // Helper to create columns of seats
+    function generateColumns(seats) {
+      let html = "";
+      let colIndex = 1;
+      const SEATS_PER_COL = 15; 
+
+      for (let i = 0; i < seats.length; i += SEATS_PER_COL) {
+        const chunk = seats.slice(i, i + SEATS_PER_COL);
+        
+        html += `
+          <div style="flex: 0 0 200px; border: 1px solid #ccc;">
+            <div style="background: #ddd; text-align: center; font-weight: bold; padding: 2px;">Column ${colIndex}</div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+              <thead>
+                <tr style="border-bottom: 1px solid #999;">
+                  <th style="padding: 2px;">Bench</th>
+                  <th style="padding: 2px;">Seat No</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+
+        chunk.forEach(s => {
+          html += `
+            <tr>
+              <td style="text-align: center; padding: 2px;">${s.bench}</td>
+              <td style="text-align: center; padding: 2px; font-weight: bold;">${s.seat}</td>
+            </tr>
+          `;
+        });
+
+        html += `</tbody></table></div>`;
+        colIndex++;
+      }
+      return html;
+    }
+
+    // 3. PRINT ALL BUTTON
+    function printAll() {
+      const buttons = document.querySelectorAll("#blockTableBody button");
+      if(buttons.length === 0) return alert("No reports to print.");
+      buttons.forEach(btn => btn.click());
+    }
+
+    // Auto-load if URL params exist
+    window.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const date = urlParams.get('date');
+        const session = urlParams.get('session');
+
+        if (date && session) {
+            document.getElementById("examDate").value = date;
+            document.getElementById("sessionSelect").value = session;
+            document.getElementById("goBtn").click();
+        }
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Print Question Paper Record</title>
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+  .print-area {
+    display: none;
+    background: white;
+    padding: 15px 25px;
+    margin-top: 20px;
+    border: 1px solid black;
+    font-family: "Times New Roman", serif;
+  }
+
+  .top-title {
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+  }
+
+  .header-line {
+    border-top: 1px solid black;
+    margin: 6px 0 10px;
+  }
+
+  .meta {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 10px;
+  }
+
+  th, td {
+    border: 1px solid black;
+    padding: 4px;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  th {
+    font-weight: bold;
+  }
+
+  .sign-area {
+    margin-top: 40px;
+    text-align: right;
+    font-size: 13px;
+  }
+</style>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+<div id="sidebar-container"></div>
+
+<div class="main-content">
+
+<h1>Print Question Paper Record</h1>
+
+<form id="receiptForm">
+  <div class="report-header">
+    <div>
+      <label>Select Date</label>
+      <input type="date" id="examDate">
+    </div>
+
+    <div style="align-self:end;">
+      <button type="button" id="goBtn">Go</button>
+    </div>
+  </div>
+</form>
+
+<!-- ================== REPORT AREA ================== -->
+
+<div id="printArea" class="print-area">
+
+  <div class="top-title">Format for submitting (Account) Record of Question Paper Packets</div>
+<div class="header-line"></div>
+<div class="top-title">To be submitted by the Officer In-Charge Examination Center</div>
+
+<div class="meta" style="margin-top:10px;">
+ <div>Exam Center / Institute Name : <span id="instName"></span></div>
+<div>Exam Center / Institute Code : <span id="instCode"></span></div>
+
+
+  <div class="meta-row">
+    <div>Examination : Summer-2019</div>
+    <div>Exam Date : <span id="printDate"></span></div>
+    <div>Exam Day : 1</div>
+  </div>
+</div>
+
+  <table>
+    <thead>
+  <tr>
+    <th rowspan="2">Sr.No.</th>
+    <th rowspan="2">Master Code</th>
+    <th rowspan="2">Subject Abbreviation</th>
+    <th rowspan="2">Question Paper Code</th>
+    <th colspan="5">Question Papers</th>
+  </tr>
+  <tr>
+    <th>Received</th>
+    <th>Used</th>
+    <th>RAC</th>
+    <th>Total Used</th>
+    <th>Balance</th>
+  </tr>
+</thead>
+
+
+    <tbody id="recordBody">
+      <!-- Data here -->
+    </tbody>
+  </table>
+
+  <div class="sign-area">
+    ( Patil S.R. )<br>
+    Sign. of Officer In-Charge<br>
+    Date : <span id="signDate"></span>
+  </div>
+
+</div>
+
+</div>
+
+<script src="../../js/config.js"></script>
+  <script src="js/sidebar.js"></script>
+
+<script>
+document.getElementById("goBtn").addEventListener("click", async () => {
+  const date = document.getElementById("examDate").value;
+
+  if (!date) {
+    alert("Please select exam date");
+    return;
+  }
+
+  // Update headers
+  document.getElementById("printDate").innerText = date;
+  document.getElementById("signDate").innerText = date;
+  document.getElementById("instName").innerText = "Sanjay Ghodawat Polytechnic, Atigre";
+  document.getElementById("instCode").innerText = "1644";
+  
+  const tbody = document.getElementById("recordBody");
+  tbody.innerHTML = "<tr><td colspan='9'>Loading Record...</td></tr>";
+
+  try {
+    // Target API_BASE_URL for reports
+    const res = await fetch(`${API_BASE_URL}/api/report/question-paper-record?date=${date}`);
+    const data = await res.json();
+
+    tbody.innerHTML = "";
+    if (data.length === 0) {
+      tbody.innerHTML = "<tr><td colspan='9'>No records found for this date.</td></tr>";
+      return;
+    }
+
+    data.forEach((row, index) => {
+      const totalUsed = Number(row.used) + Number(row.rac);
+      const balance = Number(row.received) - totalUsed;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${row.scheme || ""}</td>
+        <td>${row.subject_abbreviation || ""}</td>
+        <td>${row.question_paper_code || ""}</td>
+        <td>${row.received}</td>
+        <td>${row.used}</td>
+        <td>${row.rac}</td>
+        <td>${totalUsed}</td>
+        <td style="${balance < 0 ? 'color:red' : ''}">${balance}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("printArea").style.display = "block";
+  } catch (err) {
+    tbody.innerHTML = "<tr><td colspan='9' style='color:red'>Server Error. Ensure Port 3001 is active.</td></tr>";
+  }
+});
+</script>
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Present absent report - MSBTE Summer 2026</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .page-title { margin-bottom: 15px; }
+        .report-header {
+            display: flex; gap: 15px; background: #f1f3f6;
+            padding: 12px; border-radius: 6px; align-items: end;
+        }
+        .report-header label { font-weight: 600; }
+        
+        /* Table Layout matching project requirements */
+        .report-table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; }
+        .report-table th, .report-table td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        .report-table th { background: #f7f7f7; font-weight: 600; }
+
+        .print-btn { padding: 5px 12px; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 13px; }
+        .print-main { background: #2b36c6; margin-bottom: 15px; padding: 10px 20px; font-weight: bold; }
+        .print-blue { background: #2f6fb1; }
+
+        /* Hide interface elements when printing */
+        @media print {
+            #sidebar-container, .report-header, .no-print, h1 { display: none !important; }
+            body { background: white; padding: 0; margin: 0; }
+            .report-table { width: 100%; border: 1px solid black; }
+            .report-table th, .report-table td { border: 1px solid black; }
+        }
+    </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+    <div class="main-content">
+        <h1 class="page-title">Present Absent Report</h1>
+
+        <div class="report-header no-print">
+            <div>
+                <label>Select Date</label>
+                <input type="date" id="examDate">
+            </div>
+            <div>
+                <label>Select Session</label>
+                <select id="sessionSelect">
+                    <option value="">-- Select --</option>
+                    <option value="Morning Session">Morning</option>
+                    <option value="Afternoon Session">Afternoon</option>
+                </select>
+            </div>
+            <div style="align-self:end;">
+                <button id="goBtn" style="padding: 8px 20px; background: #2b36c6; color: white; border: none; cursor: pointer; border-radius: 4px;">Go</button>
+            </div>
+        </div>
+
+        <div id="packingSection" style="display:none;">
+            <div class="no-print" style="margin-top: 20px;">
+                <button class="print-btn print-main" onclick="window.print()">Print This Summary Page</button>
+            </div>
+
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Sr.No.</th>
+                        <th>Inst.Code</th>
+                        <th>Course / Subject (Code)</th>
+                        <th>Total Students</th>
+                        <th>Present</th>
+                        <th>Absent / Special Case</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="reportBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const goBtn = document.getElementById("goBtn");
+        const section = document.getElementById("packingSection");
+        const tbody = document.getElementById("reportBody");
+
+        goBtn.addEventListener("click", async () => {
+            const date = document.getElementById("examDate").value;
+            const session = document.getElementById("sessionSelect").value;
+
+            if (!date || !session) {
+                alert("Please select Date and Session");
+                return;
+            }
+
+            section.style.display = "block";
+            tbody.innerHTML = "<tr><td colspan='7'>Loading Data from Port 3001...</td></tr>";
+
+            try {
+                /* API call using Port 3001 */
+                const res = await fetch(`http://localhost:3001/api/packing-slip-summary?date=${date}&session=${session}`);
+                const data = await res.json();
+
+                tbody.innerHTML = "";
+                if (data.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='7'>No data found for this date/session. Check if your database session names match 'Morning Session'.</td></tr>";
+                    return;
+                }
+
+                data.forEach((row, i) => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${i + 1}</td>
+                        <td>${row.institute_code || '1644'}</td>
+                        <td>${row.course} (${row.subject_code})</td>
+                        <td>${row.total_students || 0}</td>
+                        <td>${row.present_count || 0}</td>
+                        <td>${row.absent_count || 0}</td>
+                        <td><button class="print-btn print-blue no-print" onclick='openIndividualSlip(${JSON.stringify(row)})'>Print</button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                console.error("Fetch error:", err);
+                tbody.innerHTML = "<tr><td colspan='7' style='color:red'>Server Error. Ensure Backend is running on Port 3001.</td></tr>";
+            }
+        });
+
+        /* Function to open and print a specific packing slip in a new window */
+        function openIndividualSlip(data) {
+            const win = window.open("", "_blank");
+            win.document.write(`
+                <html>
+                <body style="font-family: serif; padding: 40px; border: 2px solid black;">
+                    <h2 style="text-align:center;">Present Absent report — NEW FORMAT</h2>
+                    <hr>
+                    <p><b>Date:</b> ${document.getElementById("examDate").value}</p>
+                    <p><b>Institute:</b> ${data.institute_code || '1644'}</p>
+                    <p><b>Subject:</b> ${data.course} (${data.subject_code})</p>
+                    <p><b>Total Candidates:</b> ${data.total_students}</p>
+                    <p><b>Present:</b> ${data.present_count} | <b>Absent:</b> ${data.absent_count}</p>
+                    <br><br>
+                    <p style="text-align:right;">(Signature of Officer-In-Charge)</p>
+                    <script>window.print();<\/script>
+                </body>
+                </html>
+            `);
+        }
+    </script>
+    <script src="../../js/config.js"></script>
+  <script src="js/sidebar.js"></script>
+</body>
+</html>

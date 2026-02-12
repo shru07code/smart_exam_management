@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Print Advance Q Paper Report</title>
+<link rel="stylesheet" href="css/style.css">
+
+<style>
+  .print-area {
+    background: white;
+    padding: 30px 40px;
+    border: 1px solid #000;
+    max-width: 900px;
+    margin: 0 auto;
+    font-family: "Times New Roman", serif;
+    font-size: 14px;
+  }
+
+  .report-title {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 20px;
+    font-size: 16px;
+  }
+
+  .qp-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+
+  .qp-table th, .qp-table td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: center;
+    font-size: 13px;
+  }
+
+  .qp-table th { background-color: #f2f2f2; }
+
+  .signature-row {
+    margin-top: 60px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media print {
+    body * { visibility: hidden; }
+    #reportArea, #reportArea * { visibility: visible; }
+    #reportArea {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      border: none;
+    }
+    .no-print { display: none !important; }
+  }
+</style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+<div id="sidebar-container" class="no-print"></div>
+
+<div class="main-content">
+
+<header class="no-print">
+  <h1>Print Advance Q Paper Report</h1>
+  <div class="user-info">
+    <span id="userDisplay"></span>
+    <button onclick="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+  </div>
+</header>
+
+<div class="report-header no-print" style="background:#f9f9f9; padding:15px; border-bottom:2px solid #ddd; margin-bottom:20px;">
+    <div>
+      <label>Select Date:</label>
+      <input type="date" id="examDate">
+    </div>
+    <div style="align-self:flex-end;">
+      <button type="button" id="goBtn" style="background:#28a745; color:white; padding:6px 20px; border:none; cursor:pointer;">Generate Report</button>
+    </div>
+</div>
+
+<div id="reportContainer" style="display:none;">
+
+  <div class="print-area" id="reportArea">
+
+    <div class="report-title">Examination : <strong id="printSeason">Summer-2026</strong></div>
+
+    <p>
+      <strong>Name of Exam Center :</strong> <span id="printCenterName">Loading...</span>
+      <span style="float:right;"><strong>EC Code :</strong> <span id="printCenterCode">--</span></span>
+    </p>
+
+    <p>
+      <strong>Address of Exam Center :</strong> Gat No 552, A/P Atigre Taluka : Hatkanangle,
+      Dist Kolhapur, PIN Code 416118, State : Maharashtra, INDIA
+    </p>
+
+    <p style="line-height: 1.6; margin-top: 15px;">
+      The officer-in-Charge, Distribution Center is informed that Total no. of 
+      <strong><span id="txtTotalPackets">0</span></strong> following sealed packets of
+      question papers of Diploma Course in Engineering & Technology for the Examination Center are required for the
+      <strong>Next Day</strong> of examination dated <strong id="showDate">--</strong> as per details below.
+    </p>
+
+    <table class="qp-table">
+      <thead>
+        <tr>
+          <th style="width:50px;">Sr.No.</th>
+          <th>Session</th>
+          <th>Master Code</th>
+          <th>Subject Title</th>
+          <th>QP Code</th>
+          <th>Number of Packets</th>
+        </tr>
+      </thead>
+      <tbody id="qpBody">
+        </tbody>
+    </table>
+
+    <p style="margin-top:20px; line-height: 1.6;">
+      Certified that, I have actually tallied the total number of required Q-Paper Packets 
+      <strong><span id="certTotalNum">0</span></strong>
+      (in words: <strong><span id="certTotalWords">Zero</span></strong>) 
+      For dated <strong id="showDate2">--</strong> For Diploma Course in Engineering &
+      Technology <strong id="certSeason">Summer-2026</strong> Examination for this Examination Center.
+    </p>
+
+    <div class="signature-row">
+      <div>
+        ____________________________<br>
+        Name & Designation of<br>
+        Controller of Examination Center<br>
+        Date : <span id="signDate1">--</span>
+      </div>
+
+      <div style="text-align:right;">
+        ____________________________<br>
+        ( Patil S.R. / Lecturer )<br>
+        Name & Designation of<br>
+        Officer Incharge of Examination Center<br>
+        Date : <span id="signDate2">--</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="text-align:center; margin:30px 0;" class="no-print">
+    <button type="button" id="printBtn" style="padding:10px 30px; background:#007bff; color:white; border:none; cursor:pointer; font-size:16px;">Print Report</button>
+  </div>
+
+</div>
+
+</div>
+
+<script src="../../js/config.js"></script>
+<script src="js/sidebar.js"></script>
+<script>
+// 1. HELPER FUNCTION: Convert Number to Words (Required for the error fix)
+function numberToWords(num) {
+    const ones = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
+    const teens = ["Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+    const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+
+    if (num === 0) return "Zero";
+    if (num < 10) return ones[num];
+    if (num < 20) return teens[num - 10];
+    if (num < 100) return tens[Math.floor(num / 10)] + (num % 10 !== 0 ? " " + ones[num % 10] : "");
+    return num + ""; // Simple fallback for larger numbers
+}
+
+document.getElementById("goBtn").onclick = async () => {
+  const dateInput = document.getElementById("examDate").value;
+  if (!dateInput) return alert("Please select a date");
+
+  // 2. CALCULATE NEXT DAY
+  // We take the selected date and add 1 day to it
+  const selectedDate = new Date(dateInput);
+  const nextDay = new Date(selectedDate);
+  nextDay.setDate(selectedDate.getDate() + 1);
+
+  // Format it back to YYYY-MM-DD for the API (e.g., "2026-01-13")
+  const nextDayString = nextDay.toISOString().split('T')[0];
+
+  // 3. UPDATE UI TEXT
+  // Show "Next Day" in the report text
+  document.getElementById("showDate").textContent = nextDayString; 
+  document.getElementById("showDate2").textContent = nextDayString;
+  
+  // Signatures usually use the Current (Selected) Date
+  document.getElementById("signDate1").textContent = dateInput; 
+  document.getElementById("signDate2").textContent = dateInput;
+
+  document.getElementById("reportContainer").style.display = "block";
+  const tbody = document.getElementById("qpBody");
+  tbody.innerHTML = "<tr><td colspan='6'>Loading...</td></tr>";
+
+  try {
+    // 4. FETCH DATA FOR NEXT DAY
+    const res = await fetch(`${API_BASE_URL}/api/report/advance-qp?date=${nextDayString}`);
+    
+    if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText);
+    }
+    
+    const data = await res.json();
+    const rows = data.reportData;
+    const settings = data.settings;
+
+    // 5. UPDATE HEADER
+    if(settings) {
+        document.getElementById("printCenterName").textContent = settings.center_name || "SGI";
+        document.getElementById("printCenterCode").textContent = settings.center_code || "1644";
+        document.getElementById("printSeason").textContent = settings.exam_season || "Summer-2026";
+        document.getElementById("certSeason").textContent = settings.exam_season || "Summer-2026";
+    }
+
+    // 6. RENDER ROWS
+    tbody.innerHTML = "";
+    let grandTotal = 0;
+    let sr = 1;
+
+    if (!rows || rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan='6'>No exams scheduled for next day (${nextDayString}).</td></tr>`;
+    } else {
+        rows.forEach(row => {
+            const packets = parseInt(row.no_of_packets) || 0;
+            grandTotal += packets;
+
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${sr++}</td>
+                <td>${row.session}</td>
+                <td>${row.master_code || "-"}</td>
+                <td style="text-align:left;">${row.subject_name}</td>
+                <td>${row.subject_code}</td>
+                <td>${packets}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Add Total Row
+        const totalRow = document.createElement("tr");
+        totalRow.innerHTML = `
+            <td colspan="5" style="text-align:right;"><strong>Grand Total Packets</strong></td>
+            <td><strong>${grandTotal}</strong></td>
+        `;
+        tbody.appendChild(totalRow);
+    }
+    
+    // 7. UPDATE TOTALS (This is where it crashed before)
+    document.getElementById("txtTotalPackets").textContent = grandTotal;
+    document.getElementById("certTotalNum").textContent = grandTotal;
+    
+    // ✅ Now this function exists, so it won't crash!
+    document.getElementById("certTotalWords").textContent = numberToWords(grandTotal);
+
+  } catch (err) {
+    console.error(err);
+    alert("Error: " + err.message);
+  }
+};
+
+document.getElementById("printBtn").onclick = () => window.print();
+</script>
+
+</body>
+</html>

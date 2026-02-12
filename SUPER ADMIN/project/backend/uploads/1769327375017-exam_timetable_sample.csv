@@ -1,0 +1,6 @@
+session_type,exam_date,day,session,time_slot,subject_code,subject_name,scheme
+Morning Session,2026-01-20,Tuesday,Morning,09:30 AM - 12:30 PM,22617,Mobile Application Development,I-Scheme
+Afternoon Session,2026-01-20,Tuesday,Afternoon,02:00 PM - 05:00 PM,22618,Emerging Trends in Computer Engineering,I-Scheme
+Morning Session,2026-01-21,Wednesday,Morning,09:30 AM - 12:30 PM,22619,Database Management Systems,I-Scheme
+Afternoon Session,2026-01-21,Wednesday,Afternoon,02:00 PM - 05:00 PM,22620,Software Engineering,I-Scheme
+Morning Session,2026-01-22,Thursday,Morning,09:30 AM - 12:30 PM,22621,Web Technologies,I-Scheme

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Block Setting</title>
+<link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+<div id="sidebar-container"></div>
+
+<div class="main-content">
+    <h1>Block Setting</h1>
+
+    <!-- ===== Block Setting Form ===== -->
+    <form id="blockSettingForm">
+
+        <label>Block Name:</label>
+        <input type="text" id="blockName" required>
+
+        <label>Block Location / Room Number:</label>
+        <input type="text" id="blockLocation" placeholder="Example: Class Room No-1" required>
+
+        <div id="columnBreaks">
+            <label>Column Break 1 (Benches):</label>
+            <input type="number" class="columnInput" min="0" value="0">
+
+            <label>Column Break 2 (Benches):</label>
+            <input type="number" class="columnInput" min="0" value="0">
+
+            <label>Column Break 3 (Benches):</label>
+            <input type="number" class="columnInput" min="0" value="0">
+
+            <label>Column Break 4 (Benches):</label>
+            <input type="number" class="columnInput" min="0" value="0">
+
+            <label>Column Break 5 (Benches):</label>
+            <input type="number" class="columnInput" min="0" value="0">
+
+            <label>Column Break 6 (Benches):</label>
+            <input type="number" class="columnInput" min="0" value="0">
+
+            <label>Column Break 7 (Benches):</label>
+            <input type="number" class="columnInput" min="0" value="0">
+
+            <label>Column Break 8 (Benches):</label>
+            <input type="number" class="columnInput" min="0" value="0">
+
+            <label>Column Break 9 (Benches):</label>
+            <input type="number" class="columnInput" min="0" value="0">
+
+            <label>Column Break 10 (Benches):</label>
+            <input type="number" class="columnInput" min="0" value="0">
+        </div>
+
+        <button type="submit">Set Block</button>
+    </form>
+
+    <!-- ===== Existing Blocks Table ===== -->
+    <h2>Existing Blocks</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Block Name</th>
+                <th>Block Location</th>
+                <th>Col 1</th>
+                <th>Col 2</th>
+                <th>Col 3</th>
+                <th>Col 4</th>
+                <th>Col 5</th>
+                <th>Col 6</th>
+                <th>Col 7</th>
+                <th>Col 8</th>
+                <th>Col 9</th>
+                <th>Col 10</th>
+                <th>Block Strength</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody id="blockTable">
+            <!-- rows loaded by JS -->
+        </tbody>
+    </table>
+</div>
+
+<script src="../../js/config.js"></script>
+<script src="js/script.js"></script>
+<script src="js/sidebar.js"></script>
+
+</body>
+</html>

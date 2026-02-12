@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sanajay Ghodawat Polytechnic Theory Exam Web Application</title>
+<style>
+  
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+
+  background-color: white; 
+  background-image: url(''); 
+  
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover; 
+}
+
+
+
+  
+  .header-top {
+    display: flex;
+    background: linear-gradient(to right, #732a2a, #3f4777);
+    color: white;
+    align-items: center;
+    padding: 10px 20px;
+    font-weight: bold;
+  }
+  .logo {
+    flex: 1;
+    border-right: 1px solid yellow;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .logo img {
+    height: 70px;
+  }
+  .header-title {
+    flex: 10;
+    text-align: center;
+  }
+  .header-title h1 {
+    margin: 0;
+    font-size: 19px;
+  }
+   .header-title .version-update {
+    color: orange;
+    font-weight: 500;
+    font-size: 13px;
+  }
+  .tech-support {
+    flex: 4;
+    background-color: #0c8893;
+    font-weight: 600;
+    font-size: 13px;
+    padding-left: 12px;
+  }
+  .tech-support p {
+    margin: 5px 0;
+    line-height: 1.2;
+  }
+  .tech-support .line {
+    border-bottom: 1px solid white;
+    margin: 5px 0;
+  }
+
+  
+  .navbar {
+    background-color: #757575;
+    display: flex;
+    align-items: center;
+    padding-left: 12px;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .navbar > div, .navbar a {
+    padding: 10px 14px;
+    cursor: pointer;
+    text-decoration: none;
+    color: white;
+    font-weight: 600;
+  }
+  .navbar > div {
+    background-color: #666666;
+  }
+  .navbar a.home {
+    background-color: #287ccc;
+  }
+  .navbar a.download {
+    background-color: #e04f45;
+  }
+.navbar a.About {
+    background-color: #666666;
+  }
+
+  .navbar img {
+    height: 35px;
+    margin-left: 10px;
+  }
+  .navbar-right {
+    margin-left: auto;
+    display: flex;
+  }
+  .navbar-right a {
+    padding: 10px 16px;
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 0 4px 4px 0;
+  }
+  .Student-login {
+    background-color: #73b9db;
+  }
+  .admin-login {
+    background-color: #8ebc3b;
+    margin-left: 2px;
+  }
+
+  
+  .marquee-container {
+    background-color: #757575;
+    overflow: hidden;
+    white-space: nowrap;
+    color: white;
+    font-weight: 600;
+    font-size: 18px;
+    padding: 6px 0;
+  }
+  .marquee-text {
+    display: inline-block;
+    padding-left: 100%;
+    animation: marquee 20s linear infinite;
+  }
+  @keyframes marquee {
+    0% { transform: translateX(0%);}
+    100% { transform: translateX(-100%);}
+  }
+
+ 
+  .main-container {
+    margin: 20px auto;
+    width: 1200px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    padding: 15px 0;
+    display: flex;
+    justify-content: space-between;
+    
+  }
+
+  
+  .left-sidebar {
+    width: 210px;
+    padding-left: 15px;
+    font-size: 13px;
+  }
+  .left-sidebar img {
+    width: 150px;
+    height: 80px;
+  }
+  .left-sidebar b {
+    color: red;
+    font-weight: 700;
+    font-size: 14px;
+    display: block;
+    margin: 10px 0 10px 0;
+  }
+  .left-sidebar hr {
+    margin: 12px 0;
+  }
+  .left-sidebar .note {
+    font-size: 14px;
+  }
+  .left-sidebar .note b {
+    font-weight: 700;
+  }
+  .left-sidebar .note a {
+    font-size: 12px;
+    margin-left: 5px;
+    text-decoration: underline;
+    color: blue;
+  }
+
+ 
+  .center-content {
+    width: 550px;
+    background-color: #c5c5c5;
+    border: 1px solid #4169e1;
+    padding: 15px 25px;
+    font-size: 13px;
+    justify-content: center;
+  }
+  .center-content .title {
+    background-color: #d8f0fc;
+    font-size: 20px;
+    text-align: center;
+    padding: 10px 0;
+    margin-bottom: 12px;
+    font-weight: normal;
+    border-radius: 3px;
+  }
+  .center-content .warning {
+    color: red;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .form-group {
+    margin: 15px 0;
+  }
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 3px;
+  }
+  .form-group input[type="text"] {
+    width: 100%;
+    height: 28px;
+    padding-left: 7px;
+    box-sizing: border-box;
+    font-size: 14px;
+  }
+  .quote-number {
+    border: 1px solid black;
+  }
+
+  
+  .captcha-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0 5px 0;
+  }
+  .captcha-container label {
+    font-weight: 600;
+    font-size: 12px;
+    margin-right: 10px;
+  }
+  .captcha-image {
+    width: 96px;
+    height: 28px;
+    border: 1px dashed black;
+    background-color: white;
+    font-family: Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    user-select: none;
+    cursor: default;
+    text-align: center;
+    line-height: 28px;
+  }
+  .captcha-refresh {
+    font-size: 12px;
+    margin-left: 10px;
+  }
+  .captcha-refresh a {
+    color: blue;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+ 
+  .validation-input {
+    width: 100%;
+    height: 28px;
+    padding-left: 7px;
+    font-size: 14px;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+  }
+
+ 
+  .btn-download {
+    width: 180px;
+    height: 38px;
+    background-color: #62b44f;
+    border: none;
+    border-radius: 3px;
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+  }
+  .btn-download:hover {
+    background-color: #5aa846;
+  }
+
+  
+  .right-sidebar {
+    width: 330px;
+    font-size: 13px;
+    padding-left: 15px;
+  }
+  .right-sidebar .help-manual-download {
+    background-color: #dcf0d4;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    color: #4a7f36;
+  }
+  .right-sidebar .manual-links {
+    margin: 15px 0;
+  }
+  .manual-links button {
+    width: 100%;
+    margin: 3px 0;
+    padding: 5px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    text-align: left;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+    color: #3676bc;
+  }
+  .manual-links button:hover {
+    background-color: #e9f2fc;
+  }
+
+  
+  .bottom-note {
+    font-size: 14px;
+    margin-top: 15px;
+    text-align: center;
+    color: black;
+  }
+  .bottom-note a {
+    background-color: #c94a38;
+    color: white;
+    padding: 2px 6px;
+    text-decoration: none;
+    border-radius: 2px;
+  }
+</style>
+</head>
+<body>
+
+
+<div class="header-top">
+  <div class="logo">
+    <img src="C:\Users\Aditya\OneDrive\Pictures\l.png" alt="Logo"/> 
+  </div>
+  <div class="header-title">
+    <h1>Sanjay Ghodawat Ploytechnic Exam Web Application</h1>
+   
+    <div class="version-update">Version Updated on : OCT 2025</div>
+  </div>
+  <div class="tech-support">
+    <p>Tech Support : sanjayghodawat@polyexamsoft.com</p>
+    <div class="line"></div>
+    <p>Mob: 7588685522 / 8983361283</p>
+    <p>Email Id : sanjayghodawatpolyexamsoft@gmail.com</p>
+  </div>
+</div>
+
+
+<div class="navbar">
+  <div>Menus</div>
+  <a href="#" class="home">Home</a>
+  <a href="#" class="download">Examination</a>
+<a href="#" class="About">About_us</a>
+  
+  <div class="navbar-right">
+    <a href="#" class="webmail-login">Student Login</a>
+    <a href="#" class="admin-login">ADMIN Login</a>
+  </div>
+</div>
+
+>
+<div class="marquee-container">
+  <div class="marquee-text">Sanjay Ghodawat Polytechnic,Atigre . Winter / Summer Examination 2025-26</div>
+</div>
+
+
+
+<div class="main-container">
+
+
+
+  
+<div class="center-content">
+  <div class="warning">Result of Winter/Summer Examination</div>
+
+  <form>
+    <div class="form-group">
+      <label for="institute-code">Institute Code</label>
+      <input type="text" id="institute-code" placeholder="Enter  Four  Digit Institute code" />
+    </div>
+
+    <div class="form-group">
+      <label for="institute-name">Institute Name</label>
+      <input type="text" id="institute-name" placeholder="Enter  Institute Name" />
+    </div>
+
+    <div class="captcha-container">
+      <label for="captcha-input">Validation code:</label>
+      <div class="captcha-image" aria-label="Captcha" title="Captcha">rhn53h</div>
+      <div class="captcha-refresh">Can't read the image? click <a href="#">here</a> to refresh.</div>
+    </div>
+
+    <input type="text" id="captcha-input" class="validation-input" placeholder="Enter Validation code  here" />
+
+    <button type="button" class="btn-download" onclick="goNext()">Proceed</button>
+
+
+  </form>
+</div>
+
+
+  <div class="right-sidebar">
+    
+</div>
+<script>
+function goNext() {
+  const code = document.getElementById("institute-code").value.trim();
+  const name = document.getElementById("institute-name").value.trim();
+  const captcha = document.getElementById("captcha-input").value.trim();
+  const realCaptcha = "rhn53h"; // You can make this dynamic later
+
+  if (!code || !name || !captcha) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  if (captcha.toLowerCase() !== realCaptcha.toLowerCase()) {
+    alert("Invalid validation code");
+    return;
+  }
+
+  // If validation passes, go to login page
+  window.location.href = "login.html";
+}
+
+</script>
+
+</body>
+</html>

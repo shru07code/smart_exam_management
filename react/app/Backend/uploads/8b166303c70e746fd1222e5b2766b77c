@@ -1,0 +1,5 @@
+"Region,DC,EC,Day,Session,Paper_Code,No_of_Candidates,No_of_Packets_Required,Total_Packets_Session,Total_Packets_Day"
+"Pune,DC01,EC101,Day-1,Morning,315323,120,6,30,90"
+"Pune,DC01,EC101,Day-1,Afternoon,315324,100,5,30,90"
+"Mumbai,DC02,EC205,Day-2,Morning,315325,80,4,20,60"
+"Mumbai,DC02,EC205,Day-2,Afternoon,315326,90,5,20,60"

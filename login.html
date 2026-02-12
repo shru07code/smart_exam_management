@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Multi Role Login</title>
+
+<style>
+  body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+   
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  .login-box {
+    width: 380px;
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    animation: fadeIn 0.6s ease-out;
+  }
+
+  h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  label {
+    font-weight: 600;
+    display: block;
+    margin-top: 15px;
+    color: #555;
+    font-size: 14px;
+  }
+
+  select, input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    box-sizing: border-box; /* Fix padding issue */
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  select:focus, input:focus {
+    border-color: #764ba2;
+    box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+    outline: none;
+  }
+
+  button {
+    width: 100%;
+    margin-top: 30px;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(to right, #667eea, #764ba2);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+  }
+
+  button:active {
+    transform: translateY(0);
+  }
+
+  .msg {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    min-height: 20px; /* Prevent layout jump */
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="login-box">
+  <h2>Student Exam Management</h2>
+
+  <form id="loginForm">
+    <label>Role</label>
+    <select id="role" required>
+      <option value="">-- Select Role --</option>
+      <option value="superadmin">Super Admin</option>
+      <option value="officer">Officer Incharge</option>
+      <option value="dataentry">Data Entry</option>
+      <option value="student">Student</option>
+    </select>
+
+    <label>Username / Enrollment No</label>
+    <input type="text" id="username" placeholder="Enter username" required>
+
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Enter password" required>
+
+    <button type="submit">Login</button>
+  </form>
+
+  <div class="msg" id="msg"></div>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+document.getElementById("loginForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  const role = document.getElementById("role").value;
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const msg = document.getElementById("msg");
+
+  // Basic Validation
+  if (!role || !username || !password) {
+    msg.style.color = "red";
+    msg.innerText = "Please fill all fields";
+    return;
+  }
+
+  msg.style.color = "blue";
+  msg.innerText = "Verifying credentials...";
+
+  try {
+    // ✅ Unified API Call: Everyone goes to /api/login on Port 3000
+    // Uses API_BASE_URL from js/config.js to support cross-device access
+    const res = await fetch(`${API_BASE_URL}/api/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role, username, password })
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+        msg.style.color = "red";
+        msg.innerText = data.message || "Login failed";
+        return;
+    }
+
+    // ✅ LOGIN SUCCESS
+    msg.style.color = "green";
+    msg.innerText = "Login successful! Redirecting...";
+    
+    // Set common session item for all roles (Officer dashboard relies on this)
+    sessionStorage.setItem("loggedInUser", username);
+
+    // 1. Save Student Info to Session Storage (if applicable)
+    if (role === "student") {
+        // The username field is the enrollment number for students
+        sessionStorage.setItem("studentEnroll", username); 
+        // Optional: clear others to force fresh fetch on dashboard
+        sessionStorage.removeItem("studentSeat");
+        sessionStorage.removeItem("studentName");
+    }
+
+    // 2. Redirect based on Role
+    setTimeout(() => {
+        switch(role) {
+            case "student":
+                // ⚠️ UPDATED: Redirects to student.html
+                window.location.href = "student.html";
+                break;
+            case "superadmin":
+                window.location.href = "SUPER ADMIN/project/frontend/dashboard.html";
+                break;
+            // ✅ Inside your loginForm event listener, under the switch(role) section:
+
+case "officer":
+    // This moves up from the login folder and into the officer folder
+    window.location.href = "OFFICERINCHARGE/officeinchargenew/dashboard.html";
+    break;
+            case "dataentry":
+    // ⚠️ UPDATED: Redirects to new Data Entry Module
+    window.location.href = "DATAENTRY/dashboard.html";
+    break;
+            default:
+                msg.style.color = "red";
+                msg.innerText = "Unknown role";
+        }
+    }, 1000);
+
+  } catch (err) {
+    msg.style.color = "red";
+    msg.innerText = "Server error (Ensure Backend is running on port 3000)";
+    console.error(err);
+  }
+});
+</script>
+
+</body>
+</html>

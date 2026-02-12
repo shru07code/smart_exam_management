@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Print Format-22 PANCHNAMA REPORT</title>
+<link rel="stylesheet" href="css/style.css">
+
+<style>
+.print-wrapper{
+  background:white;
+  padding:25px 40px;
+  border:1px solid #000;
+  font-family:"Times New Roman", serif;
+}
+
+.format-title{ text-align:center; font-weight:bold; }
+.format-subtitle{ text-align:center; font-size:18px; margin-bottom:10px; }
+
+.exam-info{ text-align:center; margin:10px 0; font-weight:bold; }
+.report-text{ margin:15px 0; }
+
+.panch-table{
+  width:100%;
+  border-collapse:collapse;
+}
+.panch-table th, .panch-table td{
+  border:1px solid #000;
+  padding:6px;
+  font-size:14px;
+}
+
+.signature-row{
+  margin-top:50px;
+  display:flex;
+  justify-content:space-between;
+  font-size:14px;
+}
+
+/* PRINT ONLY REPORT */
+@media print{
+  body *{ visibility:hidden; }
+  #reportArea, #reportArea *{ visibility:visible; }
+  #reportArea{
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+  }
+}
+</style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+<div id="sidebar-container"></div>
+
+<div class="main-content">
+
+<h1>Print Format-03 Undertaking Report</h1>
+
+<form>
+  <div class="report-header">
+
+    <div>
+      <label>Select Date</label>
+      <input type="date" id="examDate">
+
+      <label>Session:</label>
+      <select id="sessionSelect">
+        <option value="">Select</option>
+        <option value="Morning">Morning</option>
+        <option value="Afternoon">Afternoon</option>
+      </select>
+    </div>
+
+    <div style="align-self:end;">
+      <button type="button" id="goBtn">Go</button>
+    </div>
+
+  </div>
+</form>
+
+<!-- ================= REPORT + PRINT ================= -->
+
+<div id="reportContainer" style="display:none;">
+
+  <div class="print-wrapper" id="reportArea">
+
+    <div class="format-title">FORMAT NO. 22</div>
+    <div class="format-subtitle">Panchanama Report</div>
+
+    <div class="exam-info">
+      EC : <span id="ecCode">1644</span> &nbsp;&nbsp;
+      Day of Examination : <span>01</span> &nbsp;&nbsp;
+      Session : <span id="showSession">--</span> &nbsp;&nbsp;
+      Date : <span id="showDate">--</span>
+    </div>
+
+    <p class="report-text">
+      The question paper bundle for the examination session was opened at the examination control room in the presence of the undersigned officers.
+      Following discrepancies were noticed after the opening of bundle;
+    </p>
+
+    <table class="panch-table">
+      <thead>
+        <tr>
+          <th>Sr.No.</th>
+          <th>Question Paper details as per the label on the bundle</th>
+          <th>Question Paper details actually present in the bundle opened</th>
+          <th>Remark</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td>22224 - 02 Pkts / Bundle No. ____</td><td>22224 - ____ Pkts / Bundle No. ____</td><td></td></tr>
+        <tr><td>2</td><td>22210 - 03 Pkts / Bundle No. ____</td><td>22210 - ____ Pkts / Bundle No. ____</td><td></td></tr>
+        <tr><td>3</td><td>22203 - 04 Pkts / Bundle No. ____</td><td>22203 - ____ Pkts / Bundle No. ____</td><td></td></tr>
+        <tr><td>4</td><td>17201 - 01 Pkts / Bundle No. ____</td><td>17201 - ____ Pkts / Bundle No. ____</td><td></td></tr>
+        <tr><td>5</td><td>13081 - 01 Pkts / Bundle No. ____</td><td>13081 - ____ Pkts / Bundle No. ____</td><td></td></tr>
+      </tbody>
+    </table>
+
+    <div class="signature-row">
+      <div>
+        Officer in charge EC<br>
+        Name: <strong>Patil S. R.</strong><br>
+        Contact Cell No. _____________
+      </div>
+
+      <div>
+        Chief Officer in charge EC<br>
+        Name: _____________<br>
+        Contact Cell No. _____________
+      </div>
+
+      <div>
+        Controller of Examination<br>
+        Name: _____________<br>
+        Contact Cell No. _____________
+      </div>
+    </div>
+
+  </div>
+
+  <div style="text-align:center; margin:25px 0;">
+    <button type="button" id="printBtn" style="padding:8px 20px;">
+      Print Report
+    </button>
+  </div>
+
+</div>
+
+</div>
+
+<script src="../../js/config.js"></script>
+  <script src="js/sidebar.js"></script>
+<script src="js/reports.js"></script>
+
+<script>
+const goBtn = document.getElementById("goBtn");
+const printBtn = document.getElementById("printBtn");
+
+document.getElementById("goBtn").onclick = async () => {
+    const date = document.getElementById("examDate").value;
+    const session = document.getElementById("sessionSelect").value;
+
+    if (!date || !session) {
+        alert("Please select Date and Session");
+        return;
+    }
+
+    try {
+        // Fetching from your reports server
+        const res = await fetch(`${API_BASE_URL}/api/report/panchanama?date=${date}&session=${session}`);
+        const data = await res.json();
+
+        // Update Headers
+        document.getElementById("showDate").textContent = date;
+        document.getElementById("showSession").textContent = session;
+
+        const tbody = document.querySelector(".panch-table tbody");
+        tbody.innerHTML = ""; // Clear static demo rows
+
+        if (data.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='4'>No data found for this session.</td></tr>";
+        } else {
+            data.forEach((row, index) => {
+                const tr = document.createElement("tr");
+                // Showing code and packets from database
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${row.subject_code} - ${row.actual_packets} Pkts / Bundle No. ____</td>
+                    <td>${row.subject_code} - ____ Pkts / Bundle No. ____</td>
+                    <td></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.getElementById("reportContainer").style.display = "block";
+    } catch (err) {
+        alert("Error connecting to server. Ensure Backend is running on Port 3001.");
+    }
+};
+
+document.getElementById("printBtn").onclick = () => window.print();
+
+printBtn.onclick = () => window.print();
+</script>
+
+</body>
+</html>

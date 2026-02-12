@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Super Admin Dashboard</title>
+<!-- FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --primary: #4f46e5;
+    --primary-dark: #4338ca;
+    --sidebar-bg: #1e1e2d;
+    --sidebar-hover: #2d2d3f;
+    --light: #f3f4f6;
+    --white: #ffffff;
+    --text: #1f2937;
+    --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  }
+
+  body { margin:0; font-family: 'Poppins', sans-serif; background: var(--light); color: var(--text); display: flex; }
+  
+  /* Sidebar */
+  .sidebar { 
+    width: 280px; 
+    height: 100vh; 
+    background: var(--sidebar-bg); 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    color: white; 
+    overflow-y: auto; 
+    transition: all 0.3s ease;
+    z-index: 100;
+  }
+
+  .logo { 
+    text-align: center; 
+    padding: 20px; 
+    background: rgba(0,0,0,0.2);
+    margin-bottom: 10px;
+  }
+  
+  .logo h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .menu { list-style:none; padding: 0 10px; margin: 0; }
+  
+  .menu-heading { 
+    font-size: 0.75rem; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    color: #6b7280; 
+    padding: 15px 15px 5px; 
+    font-weight: 600;
+  }
+
+  .menu li { margin-bottom: 5px; }
+
+  .menu li a { 
+    text-decoration: none; 
+    color: #d1d5db; 
+    display: flex; 
+    align-items: center; 
+    padding: 12px 15px; 
+    border-radius: 8px; 
+    font-size: 0.9rem; 
+    transition: all 0.2s;
+  }
+
+  .menu li a:hover { 
+    background: var(--sidebar-hover); 
+    color: #fff; 
+    transform: translateX(5px);
+  }
+
+  .menu li a i { width: 25px; color: var(--primary); }
+
+  /* Content */
+  .content { 
+    margin-left: 280px; 
+    padding: 30px; 
+    width: calc(100% - 280px); 
+    min-height: 100vh;
+  }
+
+  h1 { font-size: 1.8rem; margin-bottom: 20px; color: var(--text); }
+
+  /* Forms */
+  form { 
+    background: var(--white); 
+    padding: 25px; 
+    border-radius: 12px; 
+    box-shadow: var(--shadow); 
+    margin-bottom: 30px;
+    border-top: 4px solid var(--primary);
+  }
+
+  form label { 
+    display: block; 
+    margin-top: 15px; 
+    font-weight: 500; 
+    font-size: 0.9rem; 
+    color: #4b5563;
+  }
+
+  form input, form select { 
+    padding: 12px; 
+    margin-top: 8px; 
+    width: 100%; 
+    box-sizing: border-box; 
+    border: 1px solid #e5e7eb; 
+    border-radius: 8px; 
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+
+  form input:focus { border-color: var(--primary); outline: none; }
+
+  form button { 
+    padding: 12px 24px; 
+    background: var(--primary); 
+    color: white; 
+    border: none; 
+    cursor: pointer; 
+    border-radius: 8px; 
+    margin-top: 20px; 
+    font-weight: 500; 
+    transition: background 0.2s;
+  }
+
+  form button:hover { background: var(--primary-dark); }
+
+  /* Tables */
+  table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    background: var(--white); 
+    border-radius: 12px; 
+    overflow: hidden; 
+    box-shadow: var(--shadow); 
+  }
+
+  table th { 
+    background: #f9fafb; 
+    color: #374151; 
+    font-weight: 600; 
+    padding: 15px; 
+    text-align: left; 
+    border-bottom: 2px solid #e5e7eb;
+  }
+
+  table td { 
+    padding: 15px; 
+    border-bottom: 1px solid #f3f4f6; 
+    color: #4b5563;
+  }
+
+  table tr:last-child td { border-bottom: none; }
+  table tr:hover { background: #f9fafb; }
+
+  /* Buttons */
+  .action-btn { 
+    padding: 6px 12px; 
+    border: none; 
+    cursor: pointer; 
+    border-radius: 6px; 
+    color: white; 
+    font-size: 0.8rem; 
+    margin-right: 5px;
+  }
+  .edit-btn { background: #f59e0b; }
+  .delete-btn { background: #ef4444; }
+
+  .small { font-size: 0.9rem; color: #6b7280; }
+
+  @media (max-width: 768px){
+    .sidebar { width: 70px; }
+    .sidebar .logo h2 span, .sidebar .menu-heading, .sidebar .menu li a span { display: none; }
+    .content { margin-left: 70px; width: calc(100% - 70px); padding: 15px; }
+    .menu li a { justify-content: center; padding: 15px; }
+    .menu li a i { margin: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="logo">
+    <h2><i class="fas fa-user-shield"></i> <span>Super Admin</span></h2>
+  </div>
+  <ul class="menu">
+    <li class="menu-heading">Main Modules</li>
+    <li><a href="#" onclick="loadContent('officerIncharge')"><i class="fas fa-user-tie"></i> <span>Officer Incharge</span></a></li>
+    <li><a href="#" onclick="loadContent('dataEntry')"><i class="fas fa-keyboard"></i> <span>Data Entry</span></a></li>
+    
+    <li class="menu-heading">Setup & Config</li>
+    <li><a href="#" onclick="loadContent('institute')"><i class="fas fa-university"></i> <span>Institutes</span></a></li>
+    <li><a href="#" onclick="loadContent('dc')"><i class="fas fa-warehouse"></i> <span>Distribution Centers</span></a></li>
+    <li><a href="#" onclick="loadContent('blocks')"><i class="fas fa-cubes"></i> <span>Blocks</span></a></li>
+    <li><a href="#" onclick="loadContent('examController')"><i class="fas fa-user-cog"></i> <span>Exam Controllers</span></a></li>
+    <li><a href="#" onclick="loadContent('officerDetails')"><i class="fas fa-id-card"></i> <span>Officer Details</span></a></li>
+    <li><a href="#" onclick="loadContent('staff')"><i class="fas fa-users"></i> <span>Staff Management</span></a></li>
+    <li><a href="#" onclick="loadContent('student')"><i class="fas fa-user-graduate"></i> <span>Students</span></a></li>
+    
+    <li class="menu-heading">Exam Data</li>
+    <li><a href="#" onclick="loadContent('msbteOrders')"><i class="fas fa-file-contract"></i> <span>MSBTE Orders</span></a></li>
+    <li><a href="#" onclick="loadContent('racQpapers')"><i class="fas fa-scroll"></i> <span>RAC Q-Papers</span></a></li>
+    <li><a href="#" onclick="loadContent('examNames')"><i class="fas fa-book-open"></i> <span>Exam Names</span></a></li>
+    
+    <li class="menu-heading">System</li>
+    <li><a href="#" onclick="loadContent('backup')"><i class="fas fa-database"></i> <span>Backup</span></a></li>
+    <li><a href="#" onclick="loadContent('changePassword')"><i class="fas fa-key"></i> <span>Change Password</span></a></li>
+    <li><a href="#" onclick="logout(); return false;"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
+  </ul>
+</div>
+
+<div class="content" id="mainContent">
+  <h1>Welcome, Super Admin</h1>
+  <p class="small">Choose a module from the left panel. All modules use the same form style for user-friendly editing.</p>
+</div>
+
+<script src="../../../js/config.js"></script>
+<script>
+const BASE_URL = API_BASE_URL; // Uses API_BASE_URL from config.js
+
+
+function escapeHtml(str){
+  if(str === undefined || str === null) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+
+async function loadContent(page){
+  const content = document.getElementById('mainContent');
+
+  // ---------- Officer Incharge ----------
+  if(page==='officerIncharge'){
+    content.innerHTML = `
+      <h1>Officer Incharge Management</h1>
+      <form id="officerForm">
+        <input type="hidden" id="officerIndex">
+        <label>Username:</label><input id="off_username" type="text" required>
+        <label>Password:</label><input id="off_password" type="password" required>
+        <button type="submit">Add Officer</button>
+      </form>
+      <table id="officerTable">
+        <thead><tr><th>Sr. No</th><th>Username</th><th>Password</th><th>Actions</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    `;
+    const form = document.getElementById('officerForm');
+    const tbody = document.querySelector('#officerTable tbody');
+
+    async function loadOfficers(){
+      const res = await fetch(`${BASE_URL}/api/officers`);
+      const data = await res.json();
+      tbody.innerHTML='';
+      data.forEach((o,i)=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${i+1}</td><td>${escapeHtml(o.username)}</td><td>${escapeHtml(o.password)}</td>
+          <td>
+            <button class="action-btn edit-btn" onclick="editOfficer(${o.id})">Edit</button>
+            <button class="action-btn delete-btn" onclick="deleteOfficer(${o.id})">Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    form.onsubmit = async e=>{
+      e.preventDefault();
+      const idx = document.getElementById('officerIndex').value;
+      const payload = { username: document.getElementById('off_username').value.trim(), password: document.getElementById('off_password').value.trim() };
+      if(idx===''){
+        await fetch(`${BASE_URL}/api/officers`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+      } else {
+        await fetch(`${BASE_URL}/api/officers/${idx}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        document.getElementById('officerIndex').value='';
+        form.querySelector('button').textContent='Add Officer';
+      }
+      form.reset();
+      loadOfficers();
+    };
+
+    window.editOfficer=async(id)=>{
+      const res = await fetch(`${BASE_URL}/api/officers/${id}`);
+      const o = await res.json();
+      document.getElementById('off_username').value=o.username;
+      document.getElementById('off_password').value=o.password;
+      document.getElementById('officerIndex').value=o.id;
+      form.querySelector('button').textContent='Update Officer';
+    };
+    window.deleteOfficer=async(id)=>{
+      if(!confirm('Delete this officer?')) return;
+      await fetch(`${BASE_URL}/api/officers/${id}`,{method:'DELETE'});
+      loadOfficers();
+    };
+
+    loadOfficers();
+    return;
+  }
+
+  // ---------- Data Entry ----------
+  if(page==='dataEntry'){
+    content.innerHTML=`
+      <h1>Data Entry Management</h1>
+      <form id="dataEntryForm"><input type="hidden" id="dataIndex">
+        <label>Username:</label><input id="data_username" type="text" required>
+        <label>Password:</label><input id="data_password" type="password" required>
+        <button type="submit">Add Data Entry</button>
+      </form>
+      <table id="dataTable"><thead><tr><th>Sr. No</th><th>Username</th><th>Password</th><th>Actions</th></tr></thead><tbody></tbody></table>
+    `;
+    const form=document.getElementById('dataEntryForm');
+    const tbody=document.querySelector('#dataTable tbody');
+
+    async function loadData(){
+      const res=await fetch(`${BASE_URL}/api/data`);
+      const data=await res.json();
+      tbody.innerHTML='';
+      data.forEach((d,i)=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${i+1}</td><td>${escapeHtml(d.username)}</td><td>${escapeHtml(d.password)}</td>
+          <td>
+            <button class="action-btn edit-btn" onclick="editData(${d.id})">Edit</button>
+            <button class="action-btn delete-btn" onclick="deleteData(${d.id})">Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    form.onsubmit=async e=>{
+      e.preventDefault();
+      const idx=document.getElementById('dataIndex').value;
+      const payload={ username: document.getElementById('data_username').value.trim(), password: document.getElementById('data_password').value.trim() };
+      if(idx===''){
+        await fetch(`${BASE_URL}/api/data`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+      } else {
+        await fetch(`${BASE_URL}/api/data/${idx}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        document.getElementById('dataIndex').value='';
+        form.querySelector('button').textContent='Add Data Entry';
+      }
+      form.reset();
+      loadData();
+    };
+
+    window.editData=async(id)=>{
+      const res=await fetch(`${BASE_URL}/api/data/${id}`);
+      const d=await res.json();
+      document.getElementById('data_username').value=d.username;
+      document.getElementById('data_password').value=d.password;
+      document.getElementById('dataIndex').value=d.id;
+      form.querySelector('button').textContent='Update Data Entry';
+    };
+    window.deleteData=async(id)=>{
+      if(!confirm('Delete this entry?')) return;
+      await fetch(`${BASE_URL}/api/data/${id}`,{method:'DELETE'});
+      loadData();
+    };
+
+    loadData();
+    return;
+  }
+
+  // ---------- Billing ----------
+  if(page==='billing'){
+    content.innerHTML=`
+      <h1>Billing Management</h1>
+      <form id="billingForm"><input type="hidden" id="billIndex">
+        <label>Username:</label><input id="bill_username" type="text" required>
+        <label>Password:</label><input id="bill_password" type="password" required>
+        <button type="submit">Add Billing Record</button>
+      </form>
+      <table id="billingTable"><thead><tr><th>Sr. No</th><th>Username</th><th>Password</th><th>Actions</th></tr></thead><tbody></tbody></table>
+    `;
+    const form=document.getElementById('billingForm');
+    const tbody=document.querySelector('#billingTable tbody');
+
+    async function loadBilling(){
+      const res=await fetch(`${BASE_URL}/api/billing_records`);
+      const data=await res.json();
+      tbody.innerHTML='';
+      data.forEach((b,i)=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${i+1}</td><td>${escapeHtml(b.username)}</td><td>${escapeHtml(b.password)}</td>
+          <td>
+            <button class="action-btn edit-btn" onclick="editBill(${b.id})">Edit</button>
+            <button class="action-btn delete-btn" onclick="deleteBill(${b.id})">Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    form.onsubmit=async e=>{
+      e.preventDefault();
+      const idx=document.getElementById('billIndex').value;
+      const payload={ username: document.getElementById('bill_username').value.trim(), password: document.getElementById('bill_password').value.trim() };
+      if(idx===''){
+        await fetch(`${BASE_URL}/api/billing_records`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+      } else {
+        await fetch(`${BASE_URL}/api/billing_records/${idx}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        document.getElementById('billIndex').value='';
+        form.querySelector('button').textContent='Add Billing Record';
+      }
+      form.reset();
+      loadBilling();
+    };
+
+    window.editBill=async(id)=>{
+      const res=await fetch(`${BASE_URL}/api/billing_records/${id}`);
+      const b=await res.json();
+      document.getElementById('bill_username').value=b.username;
+      document.getElementById('bill_password').value=b.password;
+      document.getElementById('billIndex').value=b.id;
+      form.querySelector('button').textContent='Update Billing Record';
+    };
+    window.deleteBill=async(id)=>{
+      if(!confirm('Delete this billing record?')) return;
+      await fetch(`${BASE_URL}/api/billing_records/${id}`,{method:'DELETE'});
+      loadBilling();
+    };
+
+    loadBilling();
+    return;
+  }
+
+  // ---------- Institute ----------
+  if(page==='institute'){
+    content.innerHTML=`
+      <h1>Institute Management</h1>
+      <form id="instForm"><input type="hidden" id="instIndex">
+        <label>Institute Code:</label><input id="instituteCode" type="text" required>
+        <label>Institute Name:</label><input id="instituteName" type="text" required>
+        <label>Institute Address:</label><input id="instituteAddress" type="text">
+        <button type="submit">Add Institute</button>
+      </form>
+      <table id="instituteTable"><thead><tr><th>Sr. No</th><th>Code</th><th>Name</th><th>Address</th><th>Actions</th></tr></thead><tbody></tbody></table>
+    `;
+    const form=document.getElementById('instForm');
+    const tbody=document.querySelector('#instituteTable tbody');
+
+    async function loadInstitutes(){
+      const res=await fetch(`${BASE_URL}/api/institutes`);
+      const data=await res.json();
+      tbody.innerHTML='';
+      data.forEach((i,index)=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${index+1}</td><td>${i.code}</td><td>${i.name}</td><td>${i.address||''}</td>
+          <td>
+            <button class="action-btn edit-btn" onclick="editInstitute(${i.id})">Edit</button>
+            <button class="action-btn delete-btn" onclick="deleteInstitute(${i.id})">Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    form.onsubmit=async e=>{
+      e.preventDefault();
+      const idx=document.getElementById('instIndex').value;
+      const payload={ code:document.getElementById('instituteCode').value.trim(), name:document.getElementById('instituteName').value.trim(), address:document.getElementById('instituteAddress').value.trim() };
+      if(idx===''){
+        await fetch(`${BASE_URL}/api/institutes`,{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+      } else {
+        await fetch(`${BASE_URL}/api/institutes/${idx}`,{method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        document.getElementById('instIndex').value='';
+        form.querySelector('button').textContent='Add Institute';
+      }
+      form.reset();
+      loadInstitutes();
+    };
+
+    window.editInstitute=async(id)=>{
+      const res=await fetch(`${BASE_URL}/api/institutes/${id}`);
+      const i=await res.json();
+      document.getElementById('instituteCode').value=i.code;
+      document.getElementById('instituteName').value=i.name;
+      document.getElementById('instituteAddress').value=i.address||'';
+      document.getElementById('instIndex').value=i.id;
+      form.querySelector('button').textContent='Update Institute';
+    };
+    window.deleteInstitute=async(id)=>{
+      if(!confirm('Delete this institute?')) return;
+      await fetch(`${BASE_URL}/api/institutes/${id}`,{method:'DELETE'});
+      loadInstitutes();
+    };
+
+    loadInstitutes();
+    return;
+  }
+
+  // ---------- DC ----------
+  if(page==='dc'){
+    content.innerHTML=`
+      <h1>DC Management</h1>
+      <form id="dcForm"><input type="hidden" id="dcIndex">
+        <label>DC Code:</label><input id="dcCode" type="text" required>
+        <label>DC Name:</label><input id="dcName" type="text" required>
+        <label>DC Address:</label><input id="dcAddress" type="text">
+        <button type="submit">Add DC</button>
+      </form>
+      <table id="dcTable"><thead><tr><th>Sr. No</th><th>Code</th><th>Name</th><th>Address</th><th>Actions</th></tr></thead><tbody></tbody></table>
+    `;
+    const form=document.getElementById('dcForm');
+    const tbody=document.querySelector('#dcTable tbody');
+
+    async function loadDCs(){
+      const res=await fetch(`${BASE_URL}/api/dcs`);
+      const data=await res.json();
+      tbody.innerHTML='';
+      data.forEach((d,index)=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${index+1}</td><td>${d.code}</td><td>${d.name}</td><td>${d.address||''}</td>
+          <td>
+            <button class="action-btn edit-btn" onclick="editDC(${d.id})">Edit</button>
+            <button class="action-btn delete-btn" onclick="deleteDC(${d.id})">Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    form.onsubmit=async e=>{
+      e.preventDefault();
+      const idx=document.getElementById('dcIndex').value;
+      const payload={ code:document.getElementById('dcCode').value.trim(), name:document.getElementById('dcName').value.trim(), address:document.getElementById('dcAddress').value.trim() };
+      if(idx===''){
+        await fetch(`${BASE_URL}/api/dcs`,{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+      } else {
+        await fetch(`${BASE_URL}/api/dcs/${idx}`,{method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        document.getElementById('dcIndex').value='';
+        form.querySelector('button').textContent='Add DC';
+      }
+      form.reset();
+      loadDCs();
+    };
+
+    window.editDC=async(id)=>{
+      const res=await fetch(`${BASE_URL}/api/dcs/${id}`);
+      const d=await res.json();
+      document.getElementById('dcCode').value=d.code;
+      document.getElementById('dcName').value=d.name;
+      document.getElementById('dcAddress').value=d.address||'';
+      document.getElementById('dcIndex').value=d.id;
+      form.querySelector('button').textContent='Update DC';
+    };
+    window.deleteDC=async(id)=>{
+      if(!confirm('Delete this DC?')) return;
+      await fetch(`${BASE_URL}/api/dcs/${id}`,{method:'DELETE'});
+      loadDCs();
+    };
+
+    loadDCs();
+    return;
+  }
+
+  // ---------- Blocks ----------
+  if(page==='blocks'){
+    content.innerHTML=`
+      <h1>Block Management</h1>
+      <form id="blockForm">
+        <input type="hidden" id="blockIndex">
+        <label>Block Name:</label><input id="blockName" type="text" required>
+        <label>Location:</label><input id="blockLocation" type="text" required>
+        
+        <label>Column Capacities (Optional):</label>
+        <div style="display:grid; grid-template-columns: repeat(5, 1fr); gap:10px;">
+           <input type="number" id="col1" placeholder="Col 1">
+           <input type="number" id="col2" placeholder="Col 2">
+           <input type="number" id="col3" placeholder="Col 3">
+           <input type="number" id="col4" placeholder="Col 4">
+           <input type="number" id="col5" placeholder="Col 5">
+           <input type="number" id="col6" placeholder="Col 6">
+           <input type="number" id="col7" placeholder="Col 7">
+           <input type="number" id="col8" placeholder="Col 8">
+           <input type="number" id="col9" placeholder="Col 9">
+           <input type="number" id="col10" placeholder="Col 10">
+        </div>
+
+        <button type="submit">Add Block</button>
+      </form>
+      <table id="blockTable"><thead><tr><th>Sr. No</th><th>Name</th><th>Location</th><th>Total Cap</th><th>Actions</th></tr></thead><tbody></tbody></table>
+    `;
+    const form=document.getElementById('blockForm');
+    const tbody=document.querySelector('#blockTable tbody');
+
+    async function loadBlocks(){
+      const res=await fetch(`${BASE_URL}/api/blocks`);
+      const data=await res.json();
+      tbody.innerHTML='';
+      data.forEach((b,index)=>{
+        // Calculate total capacity
+        const total = [b.col1,b.col2,b.col3,b.col4,b.col5,b.col6,b.col7,b.col8,b.col9,b.col10].reduce((a,c)=>a+(c||0),0);
+        
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${index+1}</td><td>${escapeHtml(b.name)}</td><td>${escapeHtml(b.location)}</td><td>${total}</td>
+          <td>
+            <button class="action-btn edit-btn" onclick="editBlock(${b.id})">Edit</button>
+            <button class="action-btn delete-btn" onclick="deleteBlock(${b.id})">Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    form.onsubmit=async e=>{
+      e.preventDefault();
+      const idx=document.getElementById('blockIndex').value;
+      const column_breaks = [];
+      for(let i=1; i<=10; i++){
+          column_breaks.push(parseInt(document.getElementById(`col${i}`).value) || 0);
+      }
+
+      const payload={ 
+          name:document.getElementById('blockName').value.trim(), 
+          location:document.getElementById('blockLocation').value.trim(),
+          column_breaks: column_breaks
+      };
+      
+      if(idx===''){
+        await fetch(`${BASE_URL}/api/blocks`,{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+      } else {
+        await fetch(`${BASE_URL}/api/blocks/${idx}`,{method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        document.getElementById('blockIndex').value='';
+        form.querySelector('button').textContent='Add Block';
+      }
+      form.reset();
+      loadBlocks();
+    };
+
+    window.editBlock=async(id)=>{
+      const res=await fetch(`${BASE_URL}/api/block/${id}`);
+      const b=await res.json();
+      document.getElementById('blockName').value=b.name;
+      document.getElementById('blockLocation').value=b.location;
+      document.getElementById('blockIndex').value=b.id;
+      
+      // Populate columns
+      for(let i=1; i<=10; i++){
+          document.getElementById(`col${i}`).value = b[`col${i}`] || '';
+      }
+
+      form.querySelector('button').textContent='Update Block';
+    };
+    window.deleteBlock=async(id)=>{
+      if(!confirm('Delete this block?')) return;
+      await fetch(`${BASE_URL}/api/blocks/${id}`,{method:'DELETE'});
+      loadBlocks();
+    };
+
+    loadBlocks();
+    return;
+  }
+
+  // ---------- Exam Controller ----------
+  if(page==='examController'){
+    content.innerHTML=`
+      <h1>Exam Controller Management</h1>
+      <form id="examForm"><input type="hidden" id="examIndex">
+        <label>Name:</label><input id="examName" type="text" required>
+        <label>Qualification:</label><input id="examQualification" type="text">
+        <label>Designation:</label><input id="examDesignation" type="text">
+        <label>Institute Code:</label><input id="examInstituteCode" type="text">
+        <label>Institute Name:</label><input id="examInstituteName" type="text">
+        <label>MSBTE Order No:</label><input id="examOrderNo" type="text">
+        <label>Order Date:</label><input id="examOrderDate" type="date">
+        <button type="submit">Add Exam Controller</button>
+      </form>
+      <table id="examTable"><thead><tr><th>Sr. No</th><th>Name</th><th>Qualification</th><th>Designation</th><th>Institute</th><th>MSBTE Order</th><th>Order Date</th><th>Actions</th></tr></thead><tbody></tbody></table>
+    `;
+    const form=document.getElementById('examForm');
+    const tbody=document.querySelector('#examTable tbody');
+
+    async function loadExams(){
+      const res=await fetch(`${BASE_URL}/api/exam-controllers`);
+      const data=await res.json();
+      tbody.innerHTML='';
+      data.forEach((e,index)=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML=`<td>${index+1}</td><td>${escapeHtml(e.name)}</td><td>${escapeHtml(e.qualification||'')}</td>
+          <td>${escapeHtml(e.designation||'')}</td><td>${escapeHtml(e.institute_code+'-'+e.institute_name||'')}</td>
+          <td>${escapeHtml(e.msbte_order_no||'')}</td><td>${escapeHtml(e.order_date||'')}</td>
+          <td>
+            <button class="action-btn edit-btn" onclick="editExamController(${e.id})">Edit</button>
+            <button class="action-btn delete-btn" onclick="deleteExam(${e.id})">Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    form.onsubmit=async e=>{
+      e.preventDefault();
+      const idx=document.getElementById('examIndex').value;
+      const payload={
+        name:document.getElementById('examName').value.trim(),
+        qualification:document.getElementById('examQualification').value.trim(),
+        designation:document.getElementById('examDesignation').value.trim(),
+        institute_code:document.getElementById('examInstituteCode').value.trim(),
+        institute_name:document.getElementById('examInstituteName').value.trim(),
+        msbte_order_no:document.getElementById('examOrderNo').value.trim(),
+        order_date:document.getElementById('examOrderDate').value
+      };
+      if(idx===''){
+        await fetch(`${BASE_URL}/api/exam-controllers`,{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+      } else {
+        await fetch(`${BASE_URL}/api/exam-controllers/${idx}`,{method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        document.getElementById('examIndex').value='';
+        form.querySelector('button').textContent='Add Exam Controller';
+      }
+      form.reset();
+      loadExams();
+    };
+    window.editExamController = async id => {
+  const r = await fetch(`${BASE_URL}/api/exam-controllers/${id}`);
+  const e = await r.json();
+
+  examName.value = e.name;
+  examQualification.value = e.qualification || '';
+  examDesignation.value = e.designation || '';
+  examInstituteCode.value = e.institute_code || '';
+  examInstituteName.value = e.institute_name || '';
+  examOrderNo.value = e.msbte_order_no || '';
+
+  // ✅ PERFECT FIX
+  examOrderDate.value = e.order_date
+    ? e.order_date.split('T')[0]
+    : '';
+
+  examIndex.value = e.id;
+  form.querySelector('button').textContent = 'Update Exam Controller';
+};
+
+
+
+
+
+    window.deleteExam=async(id)=>{
+      if(!confirm('Delete this exam controller?')) return;
+      await fetch(`${BASE_URL}/api/exam-controllers/${id}`,{method:'DELETE'});
+      loadExams();
+    };
+
+    loadExams();
+    return;
+  }
+  // ---------- Officer Details ----------
+if(page==='officerDetails'){
+  content.innerHTML = `
+    <h1>Officer Details Management</h1>
+    <form id="officerDetailsForm">
+      <input type="hidden" id="detailIndex">
+
+      <label>Name:</label>
+      <input id="off_name" type="text" required>
+
+      <label>Qualification:</label>
+      <input id="off_qualification" type="text">
+
+      <label>Designation:</label>
+      <input id="off_designation" type="text">
+
+      <button type="submit">Add Officer</button>
+    </form>
+
+    <table id="officerDetailsTable">
+      <thead>
+        <tr>
+          <th>Sr. No</th>
+          <th>Name</th>
+          <th>Qualification</th>
+          <th>Designation</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  `;
+
+  const form = document.getElementById('officerDetailsForm');
+  const tbody = document.querySelector('#officerDetailsTable tbody');
+
+  async function loadOfficerDetails(){
+    const res = await fetch(`${BASE_URL}/api/officer-details`);
+    const data = await res.json();
+    tbody.innerHTML = '';
+
+    data.forEach((o,i)=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${i+1}</td>
+        <td>${escapeHtml(o.name)}</td>
+        <td>${escapeHtml(o.qualification || '')}</td>
+        <td>${escapeHtml(o.designation || '')}</td>
+        <td>
+          <button class="action-btn edit-btn" onclick="editOfficerDetail(${o.id})">Edit</button>
+          <button class="action-btn delete-btn" onclick="deleteOfficerDetail(${o.id})">Delete</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  form.onsubmit = async e=>{
+    e.preventDefault();
+    const idx = document.getElementById('detailIndex').value;
+
+    const payload = {
+      name: document.getElementById('off_name').value.trim(),
+      qualification: document.getElementById('off_qualification').value.trim(),
+      designation: document.getElementById('off_designation').value.trim()
+    };
+
+    if(idx===''){
+      await fetch(`${BASE_URL}/api/officer-details`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+      });
+    } else {
+      await fetch(`${BASE_URL}/api/officer-details/${idx}`, {
+        method:'PUT',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(payload)
+      });
+      document.getElementById('detailIndex').value='';
+      form.querySelector('button').textContent='Add Officer';
+    }
+
+    form.reset();
+    loadOfficerDetails();
+  };
+
+  window.editOfficerDetail = async(id)=>{
+    const res = await fetch(`${BASE_URL}/api/officer-details/${id}`);
+    const o = await res.json();
+
+    document.getElementById('off_name').value = o.name;
+    document.getElementById('off_qualification').value = o.qualification;
+    document.getElementById('off_designation').value = o.designation;
+    document.getElementById('detailIndex').value = o.id;
+
+    form.querySelector('button').textContent='Update Officer';
+  };
+
+  window.deleteOfficerDetail = async(id)=>{
+    if(!confirm('Delete this officer detail?')) return;
+    await fetch(`${BASE_URL}/api/officer-details/${id}`,{ method:'DELETE' });
+    loadOfficerDetails();
+  };
+
+  loadOfficerDetails();
+  return;
+}
+
+// ---------- Staff Management ----------
+if(page==='staff'){
+  content.innerHTML=`
+    <h1>Staff Management</h1>
+    <form id="staffForm">
+      <input type="hidden" id="staffIndex">
+      <label>Name:</label><input id="staffName" type="text" required>
+      <label>Role:</label><input id="staffRole" type="text" placeholder="e.g. Peon, Clerk">
+      <button type="submit">Add Staff</button>
+    </form>
+    <table id="staffTable"><thead><tr><th>Sr. No</th><th>Name</th><th>Role</th><th>Actions</th></tr></thead><tbody></tbody></table>
+  `;
+  const form=document.getElementById('staffForm');
+  const tbody=document.querySelector('#staffTable tbody');
+
+  async function loadStaff(){
+    const res=await fetch(`${BASE_URL}/api/staff`);
+    const data=await res.json();
+    tbody.innerHTML='';
+    data.forEach((s,i)=>{
+      tbody.innerHTML+=`<tr>
+        <td>${i+1}</td><td>${escapeHtml(s.name)}</td><td>${escapeHtml(s.role||'')}</td>
+        <td>
+          <button class="action-btn edit-btn" onclick="editStaff(${s.id})">Edit</button>
+          <button class="action-btn delete-btn" onclick="deleteStaff(${s.id})">Delete</button>
+        </td></tr>`;
+    });
+  }
+
+  form.onsubmit=async e=>{
+    e.preventDefault();
+    const idx=document.getElementById('staffIndex').value;
+    const payload={ name:document.getElementById('staffName').value.trim(), role:document.getElementById('staffRole').value.trim() };
+    const url = idx==='' ? '/api/staff' : `/api/staff/${idx}`;
+    const method = idx==='' ? 'POST' : 'PUT';
+
+    await fetch(BASE_URL+url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    form.reset(); document.getElementById('staffIndex').value='';
+    form.querySelector('button').textContent='Add Staff';
+    loadStaff();
+  };
+
+  window.editStaff=async id=>{
+    const res=await fetch(`${BASE_URL}/api/staff`); // Optimization: fetch all locally or single API
+    const data=await res.json();
+    const s = data.find(x=>x.id===id);
+    document.getElementById('staffName').value=s.name;
+    document.getElementById('staffRole').value=s.role||'';
+    document.getElementById('staffIndex').value=s.id;
+    form.querySelector('button').textContent='Update Staff';
+  };
+  window.deleteStaff=async id=>{
+    if(!confirm('Delete staff?')) return;
+    await fetch(`${BASE_URL}/api/staff/${id}`,{method:'DELETE'});
+    loadStaff();
+  };
+  loadStaff(); return;
+}
+
+// ---------- Student Management ----------
+if(page==='student'){
+  content.innerHTML=`
+    <h1>Student Management</h1>
+    <form id="studentForm">
+      <input type="hidden" id="studIndex">
+      <label>Full Name:</label><input id="studName" type="text" required>
+      <label>Enrollment No:</label><input id="studEnroll" type="text" required>
+      <label>Seat No:</label><input id="studSeat" type="text">
+      <label>Scheme:</label><input id="studScheme" type="text">
+      <label>Password:</label><input id="studPass" type="text" required placeholder="Enter new password">
+      <button type="submit">Add Student</button>
+    </form>
+    <table id="studTable"><thead><tr><th>Sr. No</th><th>Name</th><th>Enrollment</th><th>Seat No</th><th>Scheme</th><th>Actions</th></tr></thead><tbody></tbody></table>
+  `;
+  const form=document.getElementById('studentForm');
+  const tbody=document.querySelector('#studTable tbody');
+
+  async function loadStudents(){
+    const res=await fetch(`${BASE_URL}/api/students`);
+    const data=await res.json();
+    tbody.innerHTML='';
+    data.forEach((s,i)=>{
+      tbody.innerHTML+=`<tr>
+        <td>${i+1}</td><td>${escapeHtml(s.full_name)}</td><td>${escapeHtml(s.enrollment_no)}</td>
+        <td>${escapeHtml(s.seat_no||'')}</td><td>${escapeHtml(s.scheme||'')}</td>
+        <td>
+          <button class="action-btn edit-btn" onclick="editStudent(${s.id})">Edit</button>
+          <button class="action-btn delete-btn" onclick="deleteStudent(${s.id})">Delete</button>
+        </td></tr>`;
+    });
+  }
+
+  form.onsubmit=async e=>{
+    e.preventDefault();
+    const idx=document.getElementById('studIndex').value;
+    const payload={
+      full_name: document.getElementById('studName').value.trim(),
+      enrollment_no: document.getElementById('studEnroll').value.trim(),
+      seat_no: document.getElementById('studSeat').value.trim(),
+      scheme: document.getElementById('studScheme').value.trim(),
+      password: document.getElementById('studPass').value.trim()
+    };
+
+    const url = idx==='' ? '/api/students' : `/api/students/${idx}`;
+    const method = idx==='' ? 'POST' : 'PUT';
+
+    await fetch(BASE_URL+url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    form.reset(); document.getElementById('studIndex').value='';
+    form.querySelector('button').textContent='Add Student';
+    loadStudents();
+  };
+
+  window.editStudent=async id=>{
+    const res=await fetch(`${BASE_URL}/api/students`);
+    const data=await res.json();
+    const s = data.find(x=>x.id===id);
+    document.getElementById('studName').value=s.full_name;
+    document.getElementById('studEnroll').value=s.enrollment_no;
+    document.getElementById('studSeat').value=s.seat_no||'';
+    document.getElementById('studScheme').value=s.scheme||'';
+    document.getElementById('studIndex').value=s.id;
+    document.getElementById('studPass').placeholder = 'Leave empty to keep current password';
+    document.getElementById('studPass').required = false; // Optional on edit
+    form.querySelector('button').textContent='Update Student';
+  };
+  window.deleteStudent=async id=>{
+    if(!confirm('Delete student?')) return;
+    await fetch(`${BASE_URL}/api/students/${id}`,{method:'DELETE'});
+    loadStudents();
+  };
+  loadStudents(); return;
+}
+
+// ---------- MSBTE Orders ----------
+if(page==='msbteOrders'){
+  content.innerHTML=`
+    <h1>MSBTE Orders</h1>
+    <form id="msbteForm">
+      <input type="hidden" id="msbteIndex">
+
+      <label>Order No:</label>
+      <input id="msbte_order" type="text" required>
+
+      <label>Order Date:</label>
+      <input id="msbte_date" type="date">
+
+      <button type="submit">Add Order</button>
+    </form>
+
+    <table id="msbteTable">
+      <thead>
+        <tr><th>Sr. No</th><th>Order No</th><th>Date</th><th>Actions</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  `;
+
+  const form=document.getElementById('msbteForm');
+  const tbody=document.querySelector('#msbteTable tbody');
+
+  async function loadMsbte(){
+    const res=await fetch(`${BASE_URL}/api/msbte_orders`);
+    const data=await res.json();
+    tbody.innerHTML='';
+    data.forEach((m,i)=>{
+      tbody.innerHTML+=`
+        <tr>
+          <td>${i+1}</td>
+          <td>${escapeHtml(m.msbte_order)}</td>
+          <td>${m.order_date || ''}</td>
+          <td>
+            <button onclick="editMsbte(${m.id})">Edit</button>
+            <button onclick="deleteMsbte(${m.id})">Delete</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  form.onsubmit=async e=>{
+    e.preventDefault();
+    const id=document.getElementById('msbteIndex').value;
+    const payload={
+      msbte_order: msbte_order.value.trim(),
+      order_date: msbte_date.value
+    };
+
+    const url=id==='' 
+      ? '/api/msbte_orders' 
+      : `/api/msbte_orders/${id}`;
+
+    await fetch(BASE_URL+url,{
+      method:id===''?'POST':'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+
+    form.reset(); msbteIndex.value='';
+    loadMsbte();
+  };
+
+window.editMsbte = async id => {
+  const r = await fetch(`${BASE_URL}/api/msbte_orders/${id}`);
+  const m = await r.json();
+
+  msbte_order.value = m.msbte_order;
+ msbte_date.value = m.order_date; // already YYYY-MM-DD
+  msbteIndex.value = m.id;
+};
+
+
+  window.deleteMsbte=async id=>{
+    if(confirm('Delete?')){
+      await fetch(`${BASE_URL}/api/msbte_orders/${id}`,{method:'DELETE'});
+      loadMsbte();
+    }
+  };
+
+  loadMsbte(); return;
+}
+
+// ---------- RAC Q Papers ----------
+if(page==='racQpapers'){
+  content.innerHTML=`
+    <h1>RAC Q Papers</h1>
+    <form id="racForm">
+      <input type="hidden" id="racIndex">
+      <label>Count:</label>
+      <input id="rac_count" type="number" required>
+      <button>Add</button>
+    </form>
+
+    <table><thead><tr><th>Sr</th><th>Count</th><th>Actions</th></tr></thead><tbody id="racBody"></tbody></table>
+  `;
+
+  const body=document.getElementById('racBody');
+
+  async function loadRac(){
+    const r=await fetch(`${BASE_URL}/api/rac_qpapers`);
+    const d=await r.json();
+    body.innerHTML='';
+    d.forEach((x,i)=>{
+      body.innerHTML+=`
+      <tr>
+        <td>${i+1}</td><td>${x.count}</td>
+        <td>
+          <button class="action-btn edit-btn" onclick="editRac(${x.id},${x.count})">Edit</button>
+          <button class="action-btn delete-btn" onclick="deleteRac(${x.id})">Delete</button>
+        </td>
+      </tr>`;
+    });
+  }
+
+  racForm.onsubmit=async e=>{
+    e.preventDefault();
+    const id=racIndex.value;
+    const payload={ count: rac_count.value };
+
+    await fetch(`${BASE_URL}/api/rac_qpapers${id?'/'+id:''}`,{
+      method:id?'PUT':'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    racForm.reset(); racIndex.value='';
+    loadRac();
+  };
+
+  window.editRac=(id,c)=>{ racIndex.value=id; rac_count.value=c; };
+  window.deleteRac=async id=>{
+    await fetch(`${BASE_URL}/api/rac_qpapers/${id}`,{method:'DELETE'});
+    loadRac();
+  };
+
+  loadRac(); return;
+}
+// ---------- Exam Names ----------
+if(page === 'examNames'){
+  content.innerHTML = `
+    <h1>Exam Names</h1>
+
+    <form id="examNameForm">
+      <input type="hidden" id="examIndex">
+
+      <label>Exam Name:</label>
+      <input id="exam_name" required>
+
+      <button id="examBtn" type="submit">Add Exam</button>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Sr</th>
+          <th>Exam Name</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="examBody"></tbody>
+    </table>
+  `;
+
+  const examNameForm = document.getElementById('examNameForm');
+  const examIndex = document.getElementById('examIndex');
+  const exam_name = document.getElementById('exam_name');
+  const examBtn = document.getElementById('examBtn');
+  const examBody = document.getElementById('examBody');
+
+  // LOAD
+  async function loadExam(){
+    const res = await fetch(`${BASE_URL}/api/exam_names`);
+    const data = await res.json();
+
+    examBody.innerHTML = '';
+    data.forEach((e,i)=>{
+      examBody.innerHTML += `
+        <tr>
+          <td>${i+1}</td>
+          <td>${escapeHtml(e.name)}</td>
+          <td>
+            <button class="action-btn edit-btn" onclick="editExamName(${e.id})">Edit</button>
+            <button class="action-btn delete-btn" onclick="deleteExam(${e.id})">Delete</button>
+          </td>
+        </tr>
+      `;
+    });
+  }
+
+  // ADD / UPDATE
+  examNameForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const id = examIndex.value;
+    const payload = { name: exam_name.value.trim() };
+
+    await fetch(`${BASE_URL}/api/exam_names${id ? '/' + id : ''}`, {
+      method: id ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    examNameForm.reset();
+    examIndex.value = '';
+    examBtn.textContent = 'Add Exam'; // reset button
+    loadExam();
+  };
+
+  // EDIT
+  window.editExamName = async (id) => {
+    const res = await fetch(`${BASE_URL}/api/exam_names/${id}`);
+    const data = await res.json();
+
+    examIndex.value = data.id;
+    exam_name.value = data.name;
+    examBtn.textContent = 'Update Exam'; // button changes
+  };
+
+  // DELETE
+  window.deleteExam = async (id) => {
+    if(!confirm('Delete exam name?')) return;
+    await fetch(`${BASE_URL}/api/exam_names/${id}`, { method:'DELETE' });
+    loadExam();
+  };
+
+  loadExam();
+  return;
+}
+
+
+// ---------- Backup ----------
+if(page === 'backup'){
+  content.innerHTML = `
+    <h1>System Backup</h1>
+    <p class="small">
+      Download complete backup of all modules as a JSON file.
+    </p>
+
+    <button id="backupBtn">⬇️ Download Full Backup</button>
+
+    <h3>Status</h3>
+    <p id="backupStatus">Waiting...</p>
+  `;
+
+  document.getElementById('backupBtn').onclick = () => {
+    document.getElementById('backupStatus').textContent = 'Generating backup...';
+
+    const link = document.createElement('a');
+    link.href = `${BASE_URL}/api/backup`;
+    link.download = 'super_admin_backup.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    document.getElementById('backupStatus').textContent =
+      'Backup downloaded successfully ✅';
+  };
+link.download = 'super_admin_backup.txt';
+
+  return;
+}
+
+// ---------- Change Password ----------
+if(page === 'changePassword'){
+  content.innerHTML = `
+    <h1>Change Password</h1>
+    <form id="changePassForm">
+      <label>Current Password:</label>
+      <input type="password" id="currentPass" required>
+
+      <label>New Password:</label>
+      <input type="password" id="newPass" required>
+
+      <label>Confirm New Password:</label>
+      <input type="password" id="confirmPass" required>
+
+      <button type="submit">Update Password</button>
+    </form>
+    <p id="passMsg" class="small"></p>
+  `;
+
+  const form = document.getElementById('changePassForm');
+  const msg = document.getElementById('passMsg');
+
+  form.onsubmit = async e => {
+    e.preventDefault();
+
+    const current = currentPass.value.trim();
+    const newP = newPass.value.trim();
+    const confirmP = confirmPass.value.trim();
+
+    if(newP !== confirmP){
+      msg.style.color = 'red';
+      msg.textContent = 'Passwords do not match ❌';
+      return;
+    }
+
+    const res = await fetch(`${BASE_URL}/api/change-password`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        currentPassword: current,
+        newPassword: newP
+      })
+    });
+
+    const data = await res.json();
+    msg.style.color = data.success ? 'green' : 'red';
+    msg.textContent = data.message;
+
+    if(data.success) form.reset();
+  };
+
+  return;
+}
+}
+
+function logout(){
+  if(confirm('Are you sure you want to logout?')){
+    sessionStorage.clear();
+    window.location.href = '../../../login.html';
+  }
+}
+
+</script>
+</body>
+</html>

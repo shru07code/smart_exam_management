@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Print Annexure-H Report</title>
+<link rel="stylesheet" href="css/style.css">
+
+<style>
+.print-area{
+  background:white;
+  padding:30px 40px;
+  border:1px solid #000;
+  font-family:"Times New Roman", serif;
+  font-size:14px;
+}
+
+.center{ text-align:center; }
+
+.qp-table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+
+.qp-table th, .qp-table td{
+  border:1px solid #000;
+  padding:6px;
+  text-align:center;
+  vertical-align:top;
+}
+
+.signature-row{
+  margin-top:40px;
+  display:flex;
+  justify-content:space-between;
+}
+
+@media print{
+  body *{ visibility:hidden; }
+  #reportArea, #reportArea *{ visibility:visible; }
+  #reportArea{
+    position:absolute;
+    left:0; top:0;
+    width:100%;
+  }
+}
+</style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="js/config.js"></script>
+</head>
+
+<body>
+
+<div id="sidebar-container"></div>
+
+<div class="main-content">
+
+<h1>Print Annexure-H Report</h1>
+
+<form>
+  <div class="report-header">
+    <div>
+      <label>Select Date</label>
+      <input type="date" id="examDate">
+    </div>
+
+    <div style="align-self:end;">
+      <button type="button" id="goBtn">Go</button>
+    </div>
+  </div>
+</form>
+
+<!-- ================= REPORT ================= -->
+
+<div id="reportContainer" style="display:none;">
+
+<div class="print-area" id="reportArea">
+
+  <div class="center"><strong>FORMAT NO. 3A</strong></div>
+  <div class="center" style="margin:5px 0;">
+    <strong>RECEIPT OF QUESTION PAPER PACKETS</strong>
+  </div>
+
+  <p><strong>Examination :</strong> Summer-2019</p>
+
+  <p>
+    The question paper bundles received from Name: _____________________  
+    the Controller of examination from the Distribution Centre <strong>0968</strong> were opened in the
+    examination control room and the contents were as below:
+  </p>
+
+  <table class="qp-table">
+    <thead>
+      <tr>
+        <th rowspan="2">Sr. No.</th>
+        <th rowspan="2">Date</th>
+        <th rowspan="2">Session</th>
+        <th rowspan="2">Time of Opening</th>
+        <th colspan="2">Content as per Label on Bundle</th>
+        <th colspan="2">Actual Content in the Bundle</th>
+        <th rowspan="2">Remark</th>
+      </tr>
+      <tr>
+        <th>Q.P. Code</th>
+        <th>Number</th>
+        <th>Q.P. Code</th>
+        <th>Number</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td>1</td>
+        <td rowspan="2"><span id="showDate">--</span></td>
+        <td>Morning</td>
+        <td>09:10 AM</td>
+        <td>17533<br>17530<br>17512<br>17508<br>17501</td>
+        <td>1<br>2<br>1<br>1<br>2</td>
+        <td>17533<br>17530<br>17512<br>17508<br>17501</td>
+        <td>1<br>2<br>1<br>1<br>2</td>
+        <td></td>
+      </tr>
+
+      <tr>
+        <td>2</td>
+        <td>Afternoon</td>
+        <td>01:40 PM</td>
+        <td>22224<br>22210<br>22203<br>17201<br>13081</td>
+        <td>2<br>3<br>4<br>1<br>1</td>
+        <td>22224<br>22210<br>22203<br>17201<br>13081</td>
+        <td>2<br>3<br>4<br>1<br>1</td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top:15px;">
+    Date : <span id="signDate1">--</span><br>
+    Time : ____________ AM / PM
+  </p>
+
+  <div class="signature-row">
+    <div></div>
+
+    <div style="text-align:right;">
+      ____________________________<br>
+      ( Patil S.R. / Lecturer )<br>
+      Name & Designation of<br>
+      Officer Incharge of Examination Center<br>
+      Date : <span id="signDate2">--</span><br>
+      Contact Cell No. ____________
+    </div>
+  </div>
+
+</div>
+
+<div style="text-align:center; margin:25px 0;">
+  <button type="button" id="printBtn">Print Report</button>
+</div>
+
+</div>
+
+</div>
+
+  <script src="js/sidebar.js"></script>
+<script src="js/reports.js"></script>
+
+<script>
+document.getElementById("goBtn").onclick = async () => {
+    const dateInput = document.getElementById("examDate").value;
+    if (!dateInput) {
+        alert("Please select date");
+        return;
+    }
+
+    try {
+        const res = await fetch(`http://localhost:3001/api/report/annexure-h?date=${dateInput}`);
+        const data = await res.json();
+
+        // Update Headers
+        document.getElementById("showDate").textContent = dateInput;
+        document.getElementById("signDate1").textContent = dateInput;
+        document.getElementById("signDate2").textContent = dateInput;
+
+        const tbody = document.querySelector(".qp-table tbody");
+        tbody.innerHTML = ""; // Clear old data
+
+        const sessions = ["Morning Session", "Afternoon Session"];
+        
+        sessions.forEach((sessionName, index) => {
+            const sessionData = data[sessionName] || { codes: ["NIL"], counts: [0] };
+            
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                ${index === 0 ? `<td rowspan="2">${dateInput}</td>` : ''}
+                <td>${sessionName.replace(" Session", "")}</td>
+                <td>${index === 0 ? "09:10 AM" : "01:40 PM"}</td>
+                <td>${sessionData.codes.join("<br>")}</td>
+                <td>${sessionData.counts.join("<br>")}</td>
+                <td>${sessionData.codes.join("<br>")}</td>
+                <td>${sessionData.counts.join("<br>")}</td>
+                <td></td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById("reportContainer").style.display = "block";
+    } catch (err) {
+        alert("Error loading report data from server.");
+    }
+};
+
+document.getElementById("printBtn").onclick = () => window.print();
+</script>
+
+</body>
+</html>

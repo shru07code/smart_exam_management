@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Print Format-08</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .print-area { display: none; background: white; padding: 20px 25px; margin-top: 20px; border: 1px solid black; font-family: "Times New Roman", serif; font-size: 14px; }
+    .format-title { font-weight: bold; }
+    .hr-line { border-top: 1px solid black; margin: 6px 0 10px; }
+    .meta-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .center-head { text-align: center; font-weight: bold; margin-top: 5px; text-decoration: underline; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { border: 1px solid black; padding: 6px; text-align: center; }
+    .footer-fields { margin-top: 25px; }
+
+    /* Single UI Button for Printing */
+    .print-ui-btn { padding: 10px 20px; background: #2b36c6; color: white; border: none; cursor: pointer; border-radius: 5px; margin-bottom: 15px; font-weight: bold; }
+
+    @media print {
+      .no-print, #sidebar-container, .report-header, .print-ui-btn, h1 { display: none !important; }
+      body { background: white; padding: 0; }
+      .print-area { display: block !important; border: none; width: 100%; margin: 0; }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+  <div id="sidebar-container"></div>
+  <div class="main-content">
+    <h1 class="no-print">Print Format-08: Receipt of Answer Books</h1>
+
+    <form id="receiptForm" class="no-print">
+      <div class="report-header" style="background:#f9f9f9; padding:15px; border-radius:8px; display:flex; gap:15px; align-items:flex-end;">
+        <div>
+          <label>Select Date</label>
+          <input type="date" id="examDate">
+        </div>
+        <div>
+          <label>Select Session:</label>
+          <select id="sessionSelect">
+            <option value="">-- Select --</option>
+            <option value="Morning Session">Morning</option>
+            <option value="Afternoon Session">Afternoon</option>
+          </select>
+        </div>
+        <div>
+          <button type="button" id="goBtn" style="padding:8px 25px; background:#28a745; color:white; border:none; cursor:pointer;">Go</button>
+        </div>
+      </div>
+    </form>
+
+    <div id="reportWrapper" style="display:none;">
+      <div class="no-print" style="text-align:center; margin-top:20px;">
+        <button class="print-ui-btn" onclick="window.print()">Print This Format-08 Report</button>
+      </div>
+
+      <div id="printArea" class="print-area">
+        <div class="format-title">Format No - 08</div>
+        <div class="hr-line"></div>
+        <div>Format of Receipt for sealed answer book bundles to be given by the Officer in charge Distribution center to the Controller of examination</div>
+
+        <div class="meta-row" style="margin-top:10px;">
+          <div><b>Exam Center :</b> Sanjay Ghodawat Polytechnic (1644)</div>
+          <div><b>Examination :</b> Summer-2026</div>
+        </div>
+
+        <div class="center-head">RECEIPT</div>
+
+        <div style="margin-top:5px;">
+          Received below mentioned sealed packets of written answer books and theory marksheets from the Controller of examination center Code : 1644
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Sr.No.</th>
+              <th>Course / Master Code</th>
+              <th>Subject Title</th>
+              <th>Subject Code</th>
+              <th>Number of Packets</th>
+              <th>No. of Answer Books</th>
+            </tr>
+          </thead>
+          <tbody id="receiptBody"></tbody>
+          <tfoot>
+            <tr>
+              <th colspan="4" style="text-align:right; padding-right:15px;">Total Number of Answer Book Bundles</th>
+              <th id="totalBundles" colspan="2">0</th>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div class="footer-fields">
+          Name of Officer In-Charge (DC) : ____________________<br><br>
+          Signature of Officer In-Charge (DC) : ____________________<br><br>
+          Date : <span id="printDate"></span> &nbsp;&nbsp;&nbsp; Time : ________ AM/PM
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/config.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script>
+    document.getElementById("goBtn").addEventListener("click", async () => {
+      const date = document.getElementById("examDate").value;
+      const session = document.getElementById("sessionSelect").value;
+
+      if (!date || !session) {
+        alert("Please select both Date and Session");
+        return;
+      }
+
+      document.getElementById("printDate").innerText = date;
+      const receiptBody = document.getElementById("receiptBody");
+      receiptBody.innerHTML = '<tr><td colspan="6">Fetching Data from Port 3001...</td></tr>';
+      document.getElementById("reportWrapper").style.display = "block";
+
+      try {
+        // Fetching from the unified attendance/summary API
+        const res = await fetch(`${API_BASE_URL}/api/packing-slip-summary?date=${date}&session=${session}`);
+        const data = await res.json();
+
+        receiptBody.innerHTML = ''; 
+        let totalBundles = 0;
+
+        if (data.length === 0) {
+          receiptBody.innerHTML = '<tr><td colspan="6">No data found. Ensure "Morning Session" matches DB records.</td></tr>';
+          return;
+        }
+
+        data.forEach((row, index) => {
+          totalBundles += 1;
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${row.course || ""}</td>
+            <td>${row.subject_name || ""}</td>
+            <td>${row.subject_code || ""}</td>
+            <td>1</td>
+            <td>${row.present_count || 0}</td>
+          `;
+          receiptBody.appendChild(tr);
+        });
+
+        // Updating the footer ID
+        document.getElementById("totalBundles").innerText = totalBundles;
+
+      } catch (err) {
+        console.error("Receipt load error:", err);
+        receiptBody.innerHTML = '<tr><td colspan="6" style="color:red">Server connection failed on Port 3001.</td></tr>';
+      }
+    });
+  </script>
+</body>
+</html>
